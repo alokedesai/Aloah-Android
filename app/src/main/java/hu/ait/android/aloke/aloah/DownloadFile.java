@@ -1,12 +1,9 @@
 package hu.ait.android.aloke.aloah;
 
 import android.content.Context;
-import android.content.Intent;
 import android.media.MediaCodec;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
@@ -15,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import hu.ait.android.aloke.aloah.Crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 
 /**
  * Created by Aloke on 4/16/15.
@@ -41,7 +38,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
             File outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
 
-            // try decrypt temp file and put it in outputfile
+            // try to decrypt temp file and put it in outputfile
             try {
                 CryptoUtils.decrypt(MainActivity.KEY, tempFile, outputFile);
             } catch (MediaCodec.CryptoException e1) {

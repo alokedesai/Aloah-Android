@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.adapter;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
@@ -18,6 +18,9 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 
 import java.io.IOException;
 import java.util.List;
+
+import hu.ait.android.aloke.aloah.MainActivity;
+import hu.ait.android.aloke.aloah.R;
 
 /**
  * Created by Aloke on 4/15/15.

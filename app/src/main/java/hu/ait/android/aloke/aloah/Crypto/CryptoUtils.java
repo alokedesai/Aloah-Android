@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah.Crypto;
+package hu.ait.android.aloke.aloah.crypto;
 
 import android.media.MediaCodec;
 

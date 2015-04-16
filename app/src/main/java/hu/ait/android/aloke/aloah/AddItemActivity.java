@@ -1,9 +1,12 @@
 package hu.ait.android.aloke.aloah;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.nononsenseapps.filepicker.FilePickerActivity;
 
 
 public class AddItemActivity extends ActionBarActivity {
@@ -12,6 +15,9 @@ public class AddItemActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_item);
+
+        Intent intent = new Intent(this, FilePickerActivity.class);
+        startActivity(intent);
     }
 
 

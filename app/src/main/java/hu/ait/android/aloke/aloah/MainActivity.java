@@ -1,8 +1,11 @@
 package hu.ait.android.aloke.aloah;
 
-import android.app.ListActivity;
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -11,25 +14,29 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.nononsenseapps.filepicker.FilePickerActivity;
 
-import java.io.IOException;
+import java.io.File;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
+import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 
-public class MainActivity extends ActionBarActivity{
+
+public class MainActivity extends ActionBarActivity {
     public static final String STORAGE_CONNECTION_STRING =
             "DefaultEndpointsProtocol=https;" +
                     "AccountName=aloah;" +
                     "AccountKey=t4gFHiiTQhPVYLqS3DI0EJ5loeEeU3vUqmIQFp57+UEfdL+FtRrhPAuB4i0Ad1S/pvxvO0DaI87FccGXw4Qstg==";
 
     public static final String KEY = "passwordpassword";
+    public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ListBlobItem> blobs = new ArrayList<>();
@@ -71,7 +78,7 @@ public class MainActivity extends ActionBarActivity{
                 // Retrieve reference to a previously created container.
                 CloudBlobContainer container = blobClient.getContainerReference("testcontainer");
 
-                for (ListBlobItem b :container.listBlobs()) {
+                for (ListBlobItem b : container.listBlobs()) {
                     blobs.add(b);
                 }
 
@@ -108,10 +115,28 @@ public class MainActivity extends ActionBarActivity{
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_new) {
-            // do something
+            // start the file picker to choose the file you want to be encrypted on the server
+            Intent intent = new Intent(this, FilePickerActivity.class);
+            startActivityForResult(intent, FILE_CODE);
         }
 
         return super.onOptionsItemSelected(item);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
+            Uri uri = data.getData();
+            uploadFile(uri);
+        }
+    }
+
+    private void uploadFile(Uri uri) {
+        AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
+        asyncTask.execute(uri);
+    }
+
+    public CloudStorageAccount getStorageAccount() {
+        return storageAccount;
     }
 }
