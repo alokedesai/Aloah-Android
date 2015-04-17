@@ -34,7 +34,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     "AccountName=aloah;" +
                     "AccountKey=t4gFHiiTQhPVYLqS3DI0EJ5loeEeU3vUqmIQFp57+UEfdL+FtRrhPAuB4i0Ad1S/pvxvO0DaI87FccGXw4Qstg==";
 
-    public static final String KEY = "passwordpassword";
+    public static final String KEY = "password";
     public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
@@ -57,13 +57,10 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("inside on click");
                 if (canClickBtnRefresh) {
-                    System.out.println("can click is true");
                     canClickBtnRefresh = false;
                     loadBlobs();
                 }
-
             }
         });
 
@@ -133,7 +130,6 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             super.onPostExecute(aVoid);
 
             canClickBtnRefresh = true;
-            Toast.makeText(MainActivity.this, "Blobs loaded!", Toast.LENGTH_SHORT).show();
             setBlobAdapter(blobs);
         }
     }

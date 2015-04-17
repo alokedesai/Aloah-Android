@@ -8,12 +8,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -36,7 +40,7 @@ public class CryptoUtils {
     private static void doCrypto(int cipherMode, String key, File inputFile,
                                  File outputFile) throws MediaCodec.CryptoException {
         try {
-            Key secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM);
+            Key secretKey = new SecretKeySpec(generateKey(key), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(cipherMode, secretKey);
 
@@ -75,5 +79,17 @@ public class CryptoUtils {
                 | IllegalBlockSizeException | IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static byte[] generateKey(String value) {
+        //take the sha hash of a string so that we can verifty the byte value is a mutiple of 16
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update(value.getBytes());
+        return md.digest();
     }
 }
