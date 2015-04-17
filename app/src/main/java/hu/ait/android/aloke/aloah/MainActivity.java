@@ -33,7 +33,7 @@ public class MainActivity extends ActionBarActivity {
                     "AccountName=aloah;" +
                     "AccountKey=t4gFHiiTQhPVYLqS3DI0EJ5loeEeU3vUqmIQFp57+UEfdL+FtRrhPAuB4i0Ad1S/pvxvO0DaI87FccGXw4Qstg==";
 
-    public static final String KEY = "passwordpassword";
+    public static final String KEY = "password";
     public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
