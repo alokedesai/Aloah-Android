@@ -81,12 +81,19 @@ public class MainActivity extends ActionBarActivity {
     class loadBlobs extends AsyncTask<String, Void, Void> {
 
         @Override
+        protected void onPreExecute() {
+            // reset blobs
+            blobs.clear();
+        }
+
+        @Override
         protected Void doInBackground(String... params) {
             try {
                 storageAccount = CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
             } catch (URISyntaxException | InvalidKeyException e) {
                 e.printStackTrace();
             }
+
 
             // get all the blobs from a container
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
