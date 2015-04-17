@@ -1,15 +1,15 @@
 package hu.ait.android.aloke.aloah;
 
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -20,8 +20,6 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
-import java.io.File;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
@@ -41,6 +39,7 @@ public class MainActivity extends ActionBarActivity {
     private CloudStorageAccount storageAccount;
     private ArrayList<ListBlobItem> blobs = new ArrayList<>();
     private ListView listView;
+    private boolean canClickBtnRefresh = false;
 
 
     @Override
@@ -51,6 +50,24 @@ public class MainActivity extends ActionBarActivity {
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
 
+        Button btnRefresh = (Button) findViewById(R.id.btnRefresh);
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("inside on click");
+                if (canClickBtnRefresh) {
+                    System.out.println("can click is true");
+                    canClickBtnRefresh = false;
+                    loadBlobs();
+                }
+
+            }
+        });
+
+        loadBlobs();
+    }
+
+    private void loadBlobs() {
         AsyncTask<String, Void, Void> asyncTask = new loadBlobs();
         asyncTask.execute();
     }
@@ -93,6 +110,8 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
+            canClickBtnRefresh = true;
+            Toast.makeText(MainActivity.this, "Blobs loaded!", Toast.LENGTH_SHORT).show();
             setBlobAdapter(blobs);
         }
     }
