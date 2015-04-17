@@ -54,13 +54,10 @@ public class MainActivity extends ActionBarActivity {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("inside on click");
                 if (canClickBtnRefresh) {
-                    System.out.println("can click is true");
                     canClickBtnRefresh = false;
                     loadBlobs();
                 }
-
             }
         });
 
@@ -118,7 +115,6 @@ public class MainActivity extends ActionBarActivity {
             super.onPostExecute(aVoid);
 
             canClickBtnRefresh = true;
-            Toast.makeText(MainActivity.this, "Blobs loaded!", Toast.LENGTH_SHORT).show();
             setBlobAdapter(blobs);
         }
     }
