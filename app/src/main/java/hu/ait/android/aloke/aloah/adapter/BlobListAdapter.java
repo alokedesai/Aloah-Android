@@ -29,6 +29,7 @@ public class BlobListAdapter extends BaseAdapter {
     private List<ListBlobItem> blobs;
     private Context context;
 
+
     public BlobListAdapter(List<ListBlobItem> blobs, Context context) {
         this.blobs = blobs;
         this.context = context;
@@ -50,7 +51,7 @@ public class BlobListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         View v = convertView;
 
         if (v == null) {
@@ -71,8 +72,8 @@ public class BlobListAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View v) {
 
-                    CloudBlockBlob b = ((CloudBlockBlob) blob);
-                    ((MainActivity) context).downloadFile(b);
+                    ((MainActivity) context).showKeyEntryDialog();
+                    ((MainActivity) context).downloadFile(position);
                 }
             });
         }
@@ -84,4 +85,5 @@ public class BlobListAdapter extends BaseAdapter {
         TextView tvBlobName;
         Button btnBlobDownload;
     }
+
 }

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +28,7 @@ import java.util.ArrayList;
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements KeyEntryDialog.KeyEntryDialogListener{
     public static final String STORAGE_CONNECTION_STRING =
             "DefaultEndpointsProtocol=https;" +
                     "AccountName=aloah;" +
@@ -40,6 +41,8 @@ public class MainActivity extends ActionBarActivity {
     private ArrayList<ListBlobItem> blobs = new ArrayList<>();
     private ListView listView;
     private boolean canClickBtnRefresh = false;
+
+    private BlobListAdapter adapter;
 
 
     @Override
@@ -74,8 +77,20 @@ public class MainActivity extends ActionBarActivity {
 
     private void setBlobAdapter(ArrayList<ListBlobItem> blobs) {
 
-        BlobListAdapter adapter = new BlobListAdapter(blobs, this);
+        adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog, String key) {
+        Toast.makeText(this, "User input key: "+key, Toast.LENGTH_LONG).show();
+
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+
     }
 
     class loadBlobs extends AsyncTask<String, Void, Void> {
@@ -123,7 +138,8 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public void downloadFile(final CloudBlockBlob blob) {
+    public void downloadFile(int position) {
+        CloudBlockBlob blob = (CloudBlockBlob) adapter.getItem(position);
         AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this);
         asyncTask.execute(blob);
     }
@@ -164,5 +180,10 @@ public class MainActivity extends ActionBarActivity {
 
     public CloudStorageAccount getStorageAccount() {
         return storageAccount;
+    }
+
+    public void showKeyEntryDialog() {
+        KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
+        keyEntryDialog.show(getSupportFragmentManager(), KeyEntryDialog.TAG);
     }
 }
