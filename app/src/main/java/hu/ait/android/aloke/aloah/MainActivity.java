@@ -1,11 +1,14 @@
 package hu.ait.android.aloke.aloah;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,17 +47,13 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     private Uri uriForUpload = null;
     private int currentState;
 
-    public static final String KEY = "password";
+    public static final String KEY = "passwordpassword";
     public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ListBlobItem> blobs = new ArrayList<>();
     private ListView listView;
     private boolean canClickBtnRefresh = false;
-
-
-
-    private BlobListAdapter adapter;
 
 
     @Override
@@ -86,7 +85,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
     private void setBlobAdapter(ArrayList<ListBlobItem> blobs) {
 
-        adapter = new BlobListAdapter(blobs, this);
+        BlobListAdapter adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
     }
 
@@ -191,11 +190,18 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
 
-            showKeyEntryDialog();
+            currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
-            showKeyEntryDialog();
+            Handler handler = new Handler();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    showKeyEntryDialog();
+                }
+            });
 
+            //uploadFile(uriForUpload);
         }
     }
 
@@ -214,11 +220,16 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
     public void showKeyEntryDialog() {
         KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
-        keyEntryDialog.show(getSupportFragmentManager(), KeyEntryDialog.TAG);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        keyEntryDialog.show(fragmentTransaction, KeyEntryDialog.TAG);
     }
 
     public void setState(int state) {
         currentState = state;
+    }
+
+    public int getState() {
+        return currentState;
     }
 
     public void setDownloadBlob(CloudBlockBlob blob) {

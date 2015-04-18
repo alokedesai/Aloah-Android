@@ -29,6 +29,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
     @Override
     protected Boolean doInBackground(CloudBlockBlob... params) {
         CloudBlockBlob blob = params[0];
+        boolean success = false;
 
         try {
             String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -39,19 +40,18 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
             File outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
 
             // try to decrypt temp file and put it in outputfile
-            try {
-                CryptoUtils.decrypt(MainActivity.KEY, tempFile, outputFile);
-            } catch (MediaCodec.CryptoException e1) {
-                e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
+
+            String key = ((MainActivity) context).inputKey;
+            success = CryptoUtils.decrypt(key, tempFile, outputFile);
 
 
-        } catch (StorageException | URISyntaxException | IOException e) {
+
+        } catch (StorageException | URISyntaxException | IOException | MediaCodec.CryptoException e) {
             e.printStackTrace();
             return false;
         }
 
-        return true;
+        return success;
     }
 
     @Override

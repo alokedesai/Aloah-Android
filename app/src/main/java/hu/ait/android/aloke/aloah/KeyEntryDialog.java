@@ -55,8 +55,16 @@ public class KeyEntryDialog extends DialogFragment{
 
         final EditText etKey = (EditText) v.findViewById(R.id.etKey);
 
+        String positiveText;
 
-        builder.setPositiveButton("Download", new DialogInterface.OnClickListener() {
+        if(((MainActivity)getActivity()).getState() == MainActivity.DOWNLOAD_STATE) {
+            positiveText = "Download";
+        } else {
+            positiveText = "Upload";
+        }
+
+
+        builder.setPositiveButton(positiveText, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 listener.onDialogPositiveClick(KeyEntryDialog.this,

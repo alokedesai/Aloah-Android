@@ -29,6 +29,7 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
     @Override
     protected Boolean doInBackground(Uri... params) {
         Uri uri = params[0];
+        boolean success = false;
 
         try {
             URI newURI = new URI(uri.toString());
@@ -43,14 +44,15 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
             CloudBlockBlob blob = container.getBlockBlobReference(inputFile.getName() + ".encrypted");
 
             // encrypt the file
-            CryptoUtils.encrypt(MainActivity.KEY, inputFile, tempFile);
+            String key = ((MainActivity) context).inputKey;
+            success = CryptoUtils.encrypt(key, inputFile, tempFile);
             blob.upload(new java.io.FileInputStream(tempFile), tempFile.length());
 
         } catch (IOException | StorageException | URISyntaxException e) {
             e.printStackTrace();
             return false;
         }
-        return true;
+        return success;
     }
 
     @Override
