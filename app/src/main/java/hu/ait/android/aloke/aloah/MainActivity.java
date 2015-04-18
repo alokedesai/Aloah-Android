@@ -85,8 +85,65 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         loadBlobs();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_new) {
+            // start the file picker to choose the file you want to be encrypted on the server
+            Intent intent = new Intent(this, FilePickerActivity.class);
+            startActivityForResult(intent, FILE_CODE);
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                uploadDoneReceiver, new IntentFilter(UploadFile.FILTER_RESULT));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadDoneReceiver);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
+
+            currentState = UPLOAD_STATE;
+
+            uriForUpload = data.getData();
+            Handler handler = new Handler();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    showKeyEntryDialog();
+                }
+            });
+
+            //uploadFile(uriForUpload);
+        }
+    }
+
+    public void setState(int state) {
+        currentState = state;
+    }
+
+    public int getState() {
+        return currentState;
+    }
+
     private void loadBlobs() {
-        AsyncTask<String, Void, Void> asyncTask = new loadBlobs();
+        AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
         asyncTask.execute();
     }
 
@@ -94,6 +151,12 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
         BlobListAdapter adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
+    }
+
+    public void showKeyEntryDialog() {
+        KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        keyEntryDialog.show(fragmentTransaction, KeyEntryDialog.TAG);
     }
 
     @Override
@@ -119,7 +182,46 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
     }
 
-    class loadBlobs extends AsyncTask<String, Void, Void> {
+    public void downloadFile(CloudBlockBlob blob) {
+        if (blob == null) {
+            makeToast("Null blob, download failed.");
+            return;
+        }
+        AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this);
+        asyncTask.execute(blob);
+    }
+
+    private void uploadFile(Uri uri) {
+        if (uri == null) {
+            makeToast("Uri null, upload failed");
+            return;
+        }
+        AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
+        asyncTask.execute(uri);
+    }
+
+
+    public void makeToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    public CloudStorageAccount getStorageAccount() {
+        return storageAccount;
+    }
+
+    public void setDownloadBlob(CloudBlockBlob blob) {
+        blobToDownload = blob;
+    }
+
+    private BroadcastReceiver uploadDoneReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            loadBlobs();
+        }
+    };
+
+
+    class LoadBlobs extends AsyncTask<String, Void, Void> {
 
         @Override
         protected void onPreExecute() {
@@ -163,104 +265,6 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         }
     }
 
-    public void downloadFile(CloudBlockBlob blob) {
-        if (blob == null) {
-            makeToast("Null blob, download failed.");
-            return;
-        }
-        AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this);
-        asyncTask.execute(blob);
-    }
 
-    public void makeToast(String text) {
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_new) {
-            // start the file picker to choose the file you want to be encrypted on the server
-            Intent intent = new Intent(this, FilePickerActivity.class);
-            startActivityForResult(intent, FILE_CODE);
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
-
-            currentState = UPLOAD_STATE;
-
-            uriForUpload = data.getData();
-            Handler handler = new Handler();
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    showKeyEntryDialog();
-                }
-            });
-
-            //uploadFile(uriForUpload);
-        }
-    }
-
-    private void uploadFile(Uri uri) {
-        if (uri == null) {
-            makeToast("Uri null, upload failed");
-            return;
-        }
-        AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
-        asyncTask.execute(uri);
-    }
-
-    public CloudStorageAccount getStorageAccount() {
-        return storageAccount;
-    }
-
-    public void showKeyEntryDialog() {
-        KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        keyEntryDialog.show(fragmentTransaction, KeyEntryDialog.TAG);
-    }
-
-    public void setState(int state) {
-        currentState = state;
-    }
-
-    public int getState() {
-        return currentState;
-    }
-
-    public void setDownloadBlob(CloudBlockBlob blob) {
-        blobToDownload = blob;
-    }
-
-    private BroadcastReceiver uploadDoneReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            loadBlobs();
-        }
-    };
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                uploadDoneReceiver, new IntentFilter(UploadFile.FILTER_RESULT));
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadDoneReceiver);
-    }
 
 }
