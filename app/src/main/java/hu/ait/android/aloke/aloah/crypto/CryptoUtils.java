@@ -1,6 +1,8 @@
 package hu.ait.android.aloke.aloah.crypto;
 
 import android.media.MediaCodec;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,7 +51,7 @@ public class CryptoUtils {
 
             inputStream.read(inputBytes);
             if (cipherMode == Cipher.ENCRYPT_MODE) {
-                System.out.println("input byytes");
+                System.out.println("input bytes");
                 for (byte b: inputBytes) {
                     System.out.print(b);
                 }
@@ -59,7 +61,7 @@ public class CryptoUtils {
             byte[] outputBytes = cipher.doFinal(inputBytes);
 
             if (cipherMode == Cipher.DECRYPT_MODE) {
-                System.out.println("output byytes");
+                System.out.println("output bytes");
                 for (byte b: outputBytes) {
                     System.out.print(b);
                 }
@@ -82,7 +84,7 @@ public class CryptoUtils {
     }
 
     public static byte[] generateKey(String value) {
-        //take the sha hash of a string so that we can verifty the byte value is a mutiple of 16
+        //take the sha hash of a string so that we can verify the byte value is a multiple of 16
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-256");

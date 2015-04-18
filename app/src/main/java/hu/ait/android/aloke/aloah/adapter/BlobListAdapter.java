@@ -72,8 +72,8 @@ public class BlobListAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View v) {
 
-                    ((MainActivity) context).showKeyEntryDialog();
-                    ((MainActivity) context).downloadFile(position);
+                ((MainActivity) context).setDownloadBlob((CloudBlockBlob)blob);
+                ((MainActivity) context).showKeyEntryDialog();
                 }
             });
         }

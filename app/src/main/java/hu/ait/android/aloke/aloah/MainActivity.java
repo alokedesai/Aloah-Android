@@ -22,6 +22,7 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import java.net.URISyntaxException;
+import java.nio.BufferUnderflowException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
@@ -34,6 +35,15 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     "AccountName=aloah;" +
                     "AccountKey=t4gFHiiTQhPVYLqS3DI0EJ5loeEeU3vUqmIQFp57+UEfdL+FtRrhPAuB4i0Ad1S/pvxvO0DaI87FccGXw4Qstg==";
 
+
+    public static final int DOWNLOAD_STATE = 0;
+    public static final int UPLOAD_STATE = 1;
+
+    public String inputKey;
+    private CloudBlockBlob blobToDownload = null;
+    private Uri uriForUpload = null;
+    private int currentState;
+
     public static final String KEY = "password";
     public static final int FILE_CODE = 101;
 
@@ -41,6 +51,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     private ArrayList<ListBlobItem> blobs = new ArrayList<>();
     private ListView listView;
     private boolean canClickBtnRefresh = false;
+
+
 
     private BlobListAdapter adapter;
 
@@ -80,13 +92,24 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, String key) {
-        Toast.makeText(this, "User input key: "+key, Toast.LENGTH_LONG).show();
+        makeToast("User input key "+ key);
+        inputKey = key;
 
+        if (currentState == DOWNLOAD_STATE) {
+            downloadFile(blobToDownload);
+            blobToDownload = null;
+        } else if (currentState == UPLOAD_STATE) {
+            uploadFile(uriForUpload);
+            uriForUpload = null;
+        }
     }
 
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
-        Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+        makeToast("Cancelled");
+
+        dialog.dismiss();
+        blobToDownload = null;
 
     }
 
@@ -134,8 +157,11 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         }
     }
 
-    public void downloadFile(int position) {
-        CloudBlockBlob blob = (CloudBlockBlob) adapter.getItem(position);
+    public void downloadFile(CloudBlockBlob blob) {
+        if (blob == null) {
+            makeToast("Null blob, download failed.");
+            return;
+        }
         AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this);
         asyncTask.execute(blob);
     }
@@ -164,12 +190,20 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            uploadFile(uri);
+
+            showKeyEntryDialog();
+
+            uriForUpload = data.getData();
+            showKeyEntryDialog();
+
         }
     }
 
     private void uploadFile(Uri uri) {
+        if (uri == null) {
+            makeToast("Uri null, upload failed");
+            return;
+        }
         AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
         asyncTask.execute(uri);
     }
@@ -182,4 +216,13 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
         keyEntryDialog.show(getSupportFragmentManager(), KeyEntryDialog.TAG);
     }
+
+    public void setState(int state) {
+        currentState = state;
+    }
+
+    public void setDownloadBlob(CloudBlockBlob blob) {
+        blobToDownload = blob;
+    }
+
 }

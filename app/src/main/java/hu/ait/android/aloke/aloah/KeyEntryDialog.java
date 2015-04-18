@@ -39,14 +39,15 @@ public class KeyEntryDialog extends DialogFragment{
             throw new ClassCastException(activity.toString()
                     + "must implement KeyEntryDialogListener");
         }
+
+
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Select Difficulty");
-
+        builder.setTitle("Input your key");
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View v = inflater.inflate(R.layout.fragment_key_entry, null);
@@ -55,7 +56,7 @@ public class KeyEntryDialog extends DialogFragment{
         final EditText etKey = (EditText) v.findViewById(R.id.etKey);
 
 
-        builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Download", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 listener.onDialogPositiveClick(KeyEntryDialog.this,
@@ -66,7 +67,7 @@ public class KeyEntryDialog extends DialogFragment{
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+                listener.onDialogNegativeClick(KeyEntryDialog.this);
             }
         });
 
