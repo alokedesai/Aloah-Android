@@ -1,8 +1,10 @@
 package hu.ait.android.aloke.aloah;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -21,6 +23,8 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
  */
 public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
     private Context context;
+
+    public static final String FILTER_RESULT = "FILTER_RESULT";
 
     public UploadFile(Context context) {
         this.context = context;
@@ -59,6 +63,9 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
     protected void onPostExecute(Boolean result) {
         if (result) {
             ((MainActivity) context).makeToast("File uploaded successfully!");
+            Intent intent = new Intent(FILTER_RESULT);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
         } else {
             ((MainActivity) context).makeToast("There was an error uploading!");
         }
