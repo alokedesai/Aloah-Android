@@ -23,7 +23,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
+
 import javax.crypto.spec.SecretKeySpec;
 
 import hu.ait.android.aloke.aloah.MainActivity;
@@ -33,7 +34,10 @@ import hu.ait.android.aloke.aloah.MainActivity;
  */
 public class CryptoUtils {
     private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    public static final int AES_KEY_SIZE = 128;    // in bits
+    public static final int GCM_NONCE_LENGTH = 12; // in bytes
+    public static final int GCM_TAG_LENGTH = 16;   // in bytes
 
     public static boolean encrypt(String key, File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
@@ -59,7 +63,17 @@ public class CryptoUtils {
 
             Key secretKey = new SecretKeySpec(generateKey(key), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(cipherMode, secretKey); //new IvParameterSpec(iv)
+
+            // for GCM, we create IV (which is a nonce)
+            final byte[] nonce = new byte[GCM_NONCE_LENGTH];
+
+            SecureRandom random = SecureRandom.getInstance("NativePRNG");
+            random.nextBytes(nonce);
+            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
+            cipher.init(cipherMode, secretKey, spec);
+
+            byte[] tag = new byte[GCM_TAG_LENGTH];
+            cipher.updateAAD(tag);
 
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
@@ -88,14 +102,12 @@ public class CryptoUtils {
             FileOutputStream outputStream = new FileOutputStream(outputFile);
             outputStream.write(outputBytes);
 
-
-
             inputStream.close();
             outputStream.close();
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException
                 | InvalidKeyException | BadPaddingException
-                | IllegalBlockSizeException | IOException ex) {
+                | IllegalBlockSizeException | IOException | InvalidAlgorithmParameterException ex) {
             ex.printStackTrace();
             success = false;
         }
