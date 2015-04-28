@@ -35,9 +35,6 @@ import hu.ait.android.aloke.aloah.MainActivity;
 public class CryptoUtils {
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-    public static final int AES_KEY_SIZE = 128;    // in bits
-    public static final int GCM_NONCE_LENGTH = 12; // in bytes
-    public static final int GCM_TAG_LENGTH = 16;   // in bytes
 
     public static boolean encrypt(String key, File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
@@ -63,17 +60,7 @@ public class CryptoUtils {
 
             Key secretKey = new SecretKeySpec(generateKey(key), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-
-            // for GCM, we create IV (which is a nonce)
-            final byte[] nonce = new byte[GCM_NONCE_LENGTH];
-
-            SecureRandom random = SecureRandom.getInstance("NativePRNG");
-            random.nextBytes(nonce);
-            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
-            cipher.init(cipherMode, secretKey, spec);
-
-            byte[] tag = new byte[GCM_TAG_LENGTH];
-            cipher.updateAAD(tag);
+            cipher.init(cipherMode, secretKey);
 
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
@@ -107,7 +94,7 @@ public class CryptoUtils {
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException
                 | InvalidKeyException | BadPaddingException
-                | IllegalBlockSizeException | IOException | InvalidAlgorithmParameterException ex) {
+                | IllegalBlockSizeException | IOException ex) {
             ex.printStackTrace();
             success = false;
         }
