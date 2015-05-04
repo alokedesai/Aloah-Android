@@ -38,7 +38,6 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
         boolean success = false;
 
         try {
-//            URI newURI = new URI(uri.toString());
             String path = getRealPathFromURI(context, uri);
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
 
