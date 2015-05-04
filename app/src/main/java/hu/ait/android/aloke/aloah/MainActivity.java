@@ -26,7 +26,6 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
-import com.nononsenseapps.filepicker.FilePickerActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -95,7 +94,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_new) {
             // start the file picker to choose the file you want to be encrypted on the server
-            Intent intent = new Intent(this, FilePickerActivity.class);
+            Intent intent = new Intent(Intent.ACTION_PICK, null);
+            intent.setType("image/*");
             startActivityForResult(intent, FILE_CODE);
         }
 
@@ -122,6 +122,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
+
             Handler handler = new Handler();
             handler.post(new Runnable() {
                 @Override
@@ -129,8 +130,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     showKeyEntryDialog();
                 }
             });
-
-            //uploadFile(uriForUpload);
+//            uploadFile(uriForUpload);
         }
     }
 

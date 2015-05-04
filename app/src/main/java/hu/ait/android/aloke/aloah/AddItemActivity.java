@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.nononsenseapps.filepicker.FilePickerActivity;
-
 
 public class AddItemActivity extends ActionBarActivity {
 
@@ -16,8 +14,8 @@ public class AddItemActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_item);
 
-        Intent intent = new Intent(this, FilePickerActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(this, FilePickerActivity.class);
+//        startActivity(intent);
     }
 
 

@@ -2,8 +2,10 @@ package hu.ait.android.aloke.aloah;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.microsoft.azure.storage.StorageException;
@@ -36,9 +38,11 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
         boolean success = false;
 
         try {
-            URI newURI = new URI(uri.toString());
+//            URI newURI = new URI(uri.toString());
+            String path = getRealPathFromURI(context, uri);
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
-            File inputFile = new File(newURI);
+
+            File inputFile = new File(path);
 
             // create client to connect to the azure sever
             CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
@@ -68,6 +72,21 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
 
         } else {
             ((MainActivity) context).makeToast("There was an error uploading!");
+        }
+    }
+
+    public String getRealPathFromURI(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 }
