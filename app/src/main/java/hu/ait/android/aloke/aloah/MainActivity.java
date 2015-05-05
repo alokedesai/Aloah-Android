@@ -36,6 +36,7 @@ import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
+import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 
 
 public class MainActivity extends ActionBarActivity implements KeyEntryDialog.KeyEntryDialogListener{
@@ -67,6 +68,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        CryptoUtils.setContext(this);
+
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
 
@@ -78,6 +81,10 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     canClickBtnRefresh = false;
                     loadBlobs();
                 }
+                CryptoUtils.setContext(MainActivity.this);
+////                CryptoUtils.printKeys("03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4");
+//                CryptoUtils.printKeys("passwordpassword");
+
             }
         });
 

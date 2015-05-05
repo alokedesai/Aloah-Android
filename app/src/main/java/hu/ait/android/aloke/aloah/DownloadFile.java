@@ -42,7 +42,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
             // try to decrypt temp file and put it in outputfile
 
             String key = ((MainActivity) context).inputKey;
-            success = CryptoUtils.decrypt(key, tempFile, outputFile);
+            success = CryptoUtils.decrypt(tempFile, tempFile, outputFile);
 
 
 
