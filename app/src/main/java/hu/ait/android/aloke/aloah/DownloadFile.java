@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.os.Environment;
 
 import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.CloudBlobClient;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import java.io.File;
@@ -34,15 +36,19 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         try {
             String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 
+            // create client to connect to the azure sever
+            CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
+            File tempKeyFile = downloadTempKeyFile(blobClient);
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
-            blob.downloadToFile(tempFile.getAbsolutePath());
+
+            blob.downloadToFile(tempKeyFile.getAbsolutePath());
 
             File outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
 
             // try to decrypt temp file and put it in outputfile
 
             String key = ((MainActivity) context).inputKey;
-            success = CryptoUtils.decrypt(tempFile, tempFile, outputFile);
+            success = CryptoUtils.decrypt(tempKeyFile, tempFile, outputFile);
 
 
 
@@ -61,6 +67,14 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         } else {
             ((MainActivity) context).makeToast("There was an error while downloading!");
         }
+    }
 
+    private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
+        CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
+        CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(context.getString(R.string.user_id) + ".txt");
+        File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", context.getCacheDir());
+        System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
+        blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
+        return tempKeyFile;
     }
 }
