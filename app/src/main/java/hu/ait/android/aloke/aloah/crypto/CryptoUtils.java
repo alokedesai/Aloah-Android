@@ -139,8 +139,8 @@ public class CryptoUtils {
 
         // get the first line from keyfile and
         BufferedReader brTest = new BufferedReader(new FileReader(keyFile));
-        String firstLine = brTest.readLine();
-        System.out.println("the first line is: \n:" + firstLine );
+        String firstLine = getKey(ENCRYPTED_KEY);
+        System.out.println("the first line in getSymmetricKey is: \n:" + firstLine );
         byte[] keyBytes = Base64.decode(firstLine, Base64.DEFAULT);
 
         // decrypt keyBytes into the actual symmetric key

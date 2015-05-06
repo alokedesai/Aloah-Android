@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
@@ -30,6 +32,10 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.BufferUnderflowException;
 import java.security.InvalidKeyException;
@@ -256,6 +262,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     blobs.add(b);
                 }
 
+                saveEncryptedKeyToSharedPreferences(blobClient);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -269,6 +277,30 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
             canClickBtnRefresh = true;
             setBlobAdapter(blobs);
+        }
+
+        private void saveEncryptedKeyToSharedPreferences(CloudBlobClient blobClient) throws StorageException, IOException, URISyntaxException {
+            File tempFile = downloadTempKeyFile(blobClient);
+
+            BufferedReader brTest = new BufferedReader(new FileReader(tempFile));
+            String firstLine = brTest.readLine();
+            System.out.println("First line from load blobs: " + firstLine);
+
+            SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("ENCRYPTED_KEY", firstLine);
+            editor.apply();
+
+
+        }
+
+        private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
+            CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
+            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(getString(R.string.user_id) + ".txt");
+            File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", getCacheDir());
+            System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
+            blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
+            return tempKeyFile;
         }
     }
 
