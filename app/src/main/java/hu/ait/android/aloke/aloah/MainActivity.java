@@ -135,15 +135,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
-
-            Handler handler = new Handler();
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    showKeyEntryDialog();
-                }
-            });
-//            uploadFile(uriForUpload);
+            uploadFile(uriForUpload);
         }
     }
 
