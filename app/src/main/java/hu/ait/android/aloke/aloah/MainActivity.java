@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -88,21 +89,6 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                 loadBlobs();
             }
         });
-//
-//        Button btnRefresh = (Button) findViewById(R.id.btnRefresh);
-//        btnRefresh.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (canClickBtnRefresh) {
-//                    canClickBtnRefresh = false;
-//                    loadBlobs();
-//                }
-//                CryptoUtils.setContext(MainActivity.this);
-//////                CryptoUtils.printKeys("03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4");
-////                CryptoUtils.printKeys("passwordpassword");
-//
-//            }
-//        });
 
         loadBlobs();
 
@@ -115,7 +101,20 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             editor.putString("USER_ID", key);
             editor.commit();  //Use commit() because we want user_id stored immediately
         }
-}
+
+        // set up the fab
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.attachToListView(listView);
+
+        // add listener to create new shopping items using fav
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startGalleryIntent();
+            }
+        });
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -127,12 +126,16 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_new) {
             // start the file picker to choose the file you want to be encrypted on the server
-            Intent intent = new Intent(Intent.ACTION_PICK, null);
-            intent.setType("image/*");
-            startActivityForResult(intent, FILE_CODE);
+            startGalleryIntent();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startGalleryIntent() {
+        Intent intent = new Intent(Intent.ACTION_PICK, null);
+        intent.setType("image/*");
+        startActivityForResult(intent, FILE_CODE);
     }
 
     @Override
