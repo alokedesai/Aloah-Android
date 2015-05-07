@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -68,6 +69,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     private ListView listView;
     private boolean canClickBtnRefresh = false;
 
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,21 +81,28 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
-
-        Button btnRefresh = (Button) findViewById(R.id.btnRefresh);
-        btnRefresh.setOnClickListener(new View.OnClickListener() {
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public void onClick(View v) {
-                if (canClickBtnRefresh) {
-                    canClickBtnRefresh = false;
-                    loadBlobs();
-                }
-                CryptoUtils.setContext(MainActivity.this);
-////                CryptoUtils.printKeys("03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4");
-//                CryptoUtils.printKeys("passwordpassword");
-
+            public void onRefresh() {
+                loadBlobs();
             }
         });
+//
+//        Button btnRefresh = (Button) findViewById(R.id.btnRefresh);
+//        btnRefresh.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (canClickBtnRefresh) {
+//                    canClickBtnRefresh = false;
+//                    loadBlobs();
+//                }
+//                CryptoUtils.setContext(MainActivity.this);
+//////                CryptoUtils.printKeys("03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4");
+////                CryptoUtils.printKeys("passwordpassword");
+//
+//            }
+//        });
 
         loadBlobs();
 
@@ -166,6 +176,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
         BlobListAdapter adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     public void showKeyEntryDialog() {
