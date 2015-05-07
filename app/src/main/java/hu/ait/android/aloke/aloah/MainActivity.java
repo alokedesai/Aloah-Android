@@ -95,7 +95,17 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         });
 
         loadBlobs();
-    }
+
+        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        String key = sp.getString("USER_ID", "-1");
+
+        if ("-1".equals(key)) {
+            key = getString(R.string.user_id);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("USER_ID", key);
+            editor.commit();  //Use commit() because we want user_id stored immediately
+        }
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
