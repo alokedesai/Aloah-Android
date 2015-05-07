@@ -71,10 +71,8 @@ public class BlobListAdapter extends BaseAdapter {
             holder.btnBlobDownload.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                ((MainActivity) context).setDownloadBlob((CloudBlockBlob)blob);
-                ((MainActivity) context).setState(MainActivity.DOWNLOAD_STATE);
-                ((MainActivity) context).showKeyEntryDialog();
+                    CloudBlockBlob b = ((CloudBlockBlob) blob);
+                    ((MainActivity) context).downloadFile(b);
                 }
             });
         }

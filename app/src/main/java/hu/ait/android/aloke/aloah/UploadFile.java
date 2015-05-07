@@ -54,7 +54,7 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
 
             // encrypt the file
             String key = ((MainActivity) context).inputKey;
-            success = CryptoUtils.encrypt(tempKeyFile, inputFile, tempFile);
+            success = CryptoUtils.encrypt(inputFile, tempFile);
             blob.upload(new java.io.FileInputStream(tempFile), tempFile.length());
 
         } catch (IOException | StorageException | URISyntaxException e) {

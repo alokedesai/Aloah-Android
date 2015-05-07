@@ -55,37 +55,35 @@ public class CryptoUtils {
     private static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
     private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final String TRANSFORMATION = "AES";
     private static Context context;
 
-    public static boolean encrypt(File keyFile, File inputFile, File outputFile)
+    public static boolean encrypt(File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
-        return doCrypto(Cipher.ENCRYPT_MODE, keyFile, inputFile, outputFile);
+        return doCrypto(Cipher.ENCRYPT_MODE, inputFile, outputFile);
     }
 
-    public static boolean decrypt(File keyFile, File inputFile, File outputFile)
+    public static boolean decrypt(File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
-        return doCrypto(Cipher.DECRYPT_MODE, keyFile, inputFile, outputFile);
+        return doCrypto(Cipher.DECRYPT_MODE, inputFile, outputFile);
     }
 
-    private static boolean doCrypto(int cipherMode, File keyFile, File inputFile,
+    private static boolean doCrypto(int cipherMode, File inputFile,
                                     File outputFile) throws MediaCodec.CryptoException {
 
         boolean success = true;
         try {
-            Key secretKey = new SecretKeySpec(getSymmetricKey(keyFile), ALGORITHM);
+            Key secretKey = new SecretKeySpec(getSymmetricKey(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(cipherMode, secretKey);
 
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
 
-            Log.d("tag_", "" + inputBytes.length);
-
             inputStream.read(inputBytes);
             if (cipherMode == Cipher.ENCRYPT_MODE) {
-                System.out.println("input bytes");
-                for (byte b : inputBytes) {
+                System.out.println("input byytes");
+                for (byte b: inputBytes) {
                     System.out.print(b);
                 }
                 System.out.println("\n\n");
@@ -94,8 +92,8 @@ public class CryptoUtils {
             byte[] outputBytes = cipher.doFinal(inputBytes);
 
             if (cipherMode == Cipher.DECRYPT_MODE) {
-                System.out.println("output bytes");
-                for (byte b : outputBytes) {
+                System.out.println("output byytes");
+                for (byte b: outputBytes) {
                     System.out.print(b);
                 }
                 System.out.println("\n\n");
@@ -130,7 +128,7 @@ public class CryptoUtils {
         //return value.getBytes();
     }
 
-    private static byte[] getSymmetricKey(File keyFile) throws IOException {
+    private static byte[] getSymmetricKey() throws IOException {
 
         String private_key = getKey(PRIVATE_KEY);
         System.out.println("private key num bytes: " + private_key.getBytes().length);
@@ -138,7 +136,6 @@ public class CryptoUtils {
 //        byte[] keyBytes = getEncryptedKey();
 
         // get the first line from keyfile and
-        BufferedReader brTest = new BufferedReader(new FileReader(keyFile));
         String firstLine = getKey(ENCRYPTED_KEY);
         System.out.println("the first line in getSymmetricKey is: \n:" + firstLine );
         byte[] keyBytes = Base64.decode(firstLine, Base64.DEFAULT);
