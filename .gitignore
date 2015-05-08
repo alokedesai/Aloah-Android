@@ -9,3 +9,4 @@
 /app/app.iml
 app/app.iml
 app/src/main/res/values/secret_keys.xml
+*.iml

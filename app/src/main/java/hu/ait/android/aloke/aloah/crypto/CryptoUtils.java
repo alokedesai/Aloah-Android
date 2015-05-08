@@ -52,7 +52,7 @@ import hu.ait.android.aloke.aloah.R;
 public class CryptoUtils {
     private static final String PRIVATE_KEY = "PRIVATE_KEY";
     private static final String PUBLIC_KEY = "PUBLIC_KEY";
-    private static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
+    public static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES";
@@ -215,7 +215,7 @@ public class CryptoUtils {
         return privKey;
     }
 
-    public static void printKeys(String text) {
+    public static byte[] printKeys(String text) {
         byte[] input = text.getBytes();
 
         try {
@@ -244,10 +244,12 @@ public class CryptoUtils {
 
             byte[] endResult = getSymmetricKey(cipherText, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
             System.out.println("the end result is: " + new String(endResult));
+            return cipherText;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException
                 | IllegalBlockSizeException | BadPaddingException | IOException e) {
             e.printStackTrace();
             System.out.println("there was an error :(");
+            return null;
         }
     }
 
@@ -255,7 +257,7 @@ public class CryptoUtils {
         SharedPreferences sp = context.getSharedPreferences("KEY", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(keyName, key);
-        editor.apply();
+        editor.commit();
     }
 
     public static String getKey(String spKey) {

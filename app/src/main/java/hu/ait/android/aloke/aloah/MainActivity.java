@@ -10,12 +10,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,8 +38,10 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.BufferUnderflowException;
 import java.security.InvalidKeyException;
@@ -53,6 +57,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                     "AccountName=aloah;" +
                     "AccountKey=t4gFHiiTQhPVYLqS3DI0EJ5loeEeU3vUqmIQFp57+UEfdL+FtRrhPAuB4i0Ad1S/pvxvO0DaI87FccGXw4Qstg==";
 
+    public static final String KEY_CONTAINER = "keycontainer";
+    public static final String TEST_CONTAINER = "testcontainer";
 
     public static final int DOWNLOAD_STATE = 0;
     public static final int UPLOAD_STATE = 1;
@@ -96,11 +102,24 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         String key = sp.getString("USER_ID", "-1");
 
         if ("-1".equals(key)) {
-            key = getString(R.string.user_id);
+            key = "1";
             SharedPreferences.Editor editor = sp.edit();
             editor.putString("USER_ID", key);
             editor.commit();  //Use commit() because we want user_id stored immediately
+
+            System.out.println("the value of the user id is: ");
+            // create public and private keys
+            CryptoUtils.setContext(this);
+            byte[] encryptedKeyBytes = CryptoUtils.printKeys("passwordpassword");
+            String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
+            System.out.println("the encrypted key is: \n" + encryptedKeyString );
+            System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
+
+            encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
+            uploadEncryptedKey(encryptedKeyString);
         }
+
+
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -228,6 +247,11 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
         asyncTask.execute(uri);
     }
+    
+    private void uploadEncryptedKey(String encryptedKey) {
+        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(this);
+        asyncTask.execute(encryptedKey);
+    }
 
 
     public void makeToast(String text) {
@@ -302,11 +326,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             String firstLine = brTest.readLine();
             System.out.println("First line from load blobs: " + firstLine);
 
-            SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString("ENCRYPTED_KEY", firstLine);
-            editor.apply();
-
+            saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, firstLine);
 
         }
 
@@ -320,6 +340,12 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         }
     }
 
+    public void saveToSharedPreferences(String key, String value) {
+        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
 
 
 }
