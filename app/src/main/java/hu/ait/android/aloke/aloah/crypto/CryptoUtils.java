@@ -18,6 +18,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -28,10 +30,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -55,7 +59,7 @@ public class CryptoUtils {
     private static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
     private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final String TRANSFORMATION = "AES";
     private static Context context;
 
     public static boolean encrypt(File keyFile, File inputFile, File outputFile)
@@ -71,8 +75,11 @@ public class CryptoUtils {
     private static boolean doCrypto(int cipherMode, File keyFile, File inputFile,
                                     File outputFile) throws MediaCodec.CryptoException {
 
+        System.out.println("gets into docrypto \n");
+
         boolean success = true;
         try {
+            System.out.println("the symmetric key: "+new String(getSymmetricKey(keyFile)));
             Key secretKey = new SecretKeySpec(getSymmetricKey(keyFile), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(cipherMode, secretKey);
@@ -80,11 +87,11 @@ public class CryptoUtils {
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
 
-            Log.d("tag_", "" + inputBytes.length);
+            //Log.d("tag_", "Length of input bytes: \n" + inputBytes.length);
 
             inputStream.read(inputBytes);
             if (cipherMode == Cipher.ENCRYPT_MODE) {
-                System.out.println("input bytes");
+                System.out.println("input bytes \n");
                 for (byte b : inputBytes) {
                     System.out.print(b);
                 }
@@ -93,8 +100,10 @@ public class CryptoUtils {
 
             byte[] outputBytes = cipher.doFinal(inputBytes);
 
+
+
             if (cipherMode == Cipher.DECRYPT_MODE) {
-                System.out.println("output bytes");
+                System.out.println("output bytes \n");
                 for (byte b : outputBytes) {
                     System.out.print(b);
                 }
@@ -140,7 +149,7 @@ public class CryptoUtils {
         // get the first line from keyfile and
         BufferedReader brTest = new BufferedReader(new FileReader(keyFile));
         String firstLine = getKey(ENCRYPTED_KEY);
-        System.out.println("the first line in getSymmetricKey is: \n:" + firstLine );
+        System.out.println("the first line in getSymmetricKey is: \n" + firstLine );
         byte[] keyBytes = Base64.decode(firstLine, Base64.DEFAULT);
 
         // decrypt keyBytes into the actual symmetric key
@@ -149,6 +158,7 @@ public class CryptoUtils {
 
             cipher.init(Cipher.DECRYPT_MODE, getKeyFromString(private_key));
             return cipher.doFinal(keyBytes);
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             System.out.println("inside no such algorithm");
@@ -200,13 +210,13 @@ public class CryptoUtils {
     }
 
     private static Key getKeyFromString(String privateKey) {
-        System.out.println("the private key: " + getKey(PRIVATE_KEY));
+        //System.out.println("the private key: \n" + getKey(PRIVATE_KEY));
         PKCS8EncodedKeySpec specPriv = new PKCS8EncodedKeySpec(Base64.decode(privateKey, Base64.DEFAULT));
 
-        System.out.println("the length of the private key is: " + Base64.decode(privateKey, Base64.DEFAULT).length);
+        System.out.println("the length of the private key is: \n" + Base64.decode(privateKey, Base64.DEFAULT).length);
         PrivateKey privKey = null;
         try {
-            KeyFactory kf = KeyFactory.getInstance("RSA");
+            KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
             privKey = kf.generatePrivate(specPriv);
         }
         catch (InvalidKeySpecException e) {
@@ -214,9 +224,48 @@ public class CryptoUtils {
         }
         catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
         }
         return privKey;
     }
+
+    public static PrivateKey loadPrivateKey(String key64) throws GeneralSecurityException {
+        byte[] clear = Base64.decode(key64, Base64.DEFAULT);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(clear);
+        KeyFactory fact = KeyFactory.getInstance("RSA", "BC");
+        PrivateKey priv = fact.generatePrivate(keySpec);
+        Arrays.fill(clear, (byte) 0);
+        return priv;
+    }
+
+
+    public static PublicKey loadPublicKey(String stored) throws GeneralSecurityException {
+        byte[] data = Base64.decode(stored, Base64.DEFAULT);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+        KeyFactory fact = KeyFactory.getInstance("RSA", "BC");
+        return fact.generatePublic(spec);
+    }
+
+    public static String savePrivateKey(PrivateKey priv) throws GeneralSecurityException {
+        KeyFactory fact = KeyFactory.getInstance("RSA", "BC");
+        PKCS8EncodedKeySpec spec = fact.getKeySpec(priv,
+                PKCS8EncodedKeySpec.class);
+        byte[] packed = spec.getEncoded();
+        String key64 = Base64.encodeToString(packed, Base64.DEFAULT);
+
+        Arrays.fill(packed, (byte) 0);
+        return key64;
+    }
+
+
+    public static String savePublicKey(PublicKey publ) throws GeneralSecurityException {
+        KeyFactory fact = KeyFactory.getInstance("RSA", "BC");
+        X509EncodedKeySpec spec = fact.getKeySpec(publ,
+                X509EncodedKeySpec.class);
+        return Base64.encodeToString(spec.getEncoded(), Base64.DEFAULT);
+    }
+
 
     public static void printKeys(String text) {
         byte[] input = text.getBytes();
@@ -229,30 +278,54 @@ public class CryptoUtils {
             generator.initialize(1024);
 
             KeyPair pair = generator.generateKeyPair();
-            Key pubKey = pair.getPublic();
 
-            Key privKey = pair.getPrivate();
+            System.out.println("PRINTING PUBLIC KEY");
+
+            String pubKeyString = savePublicKey(pair.getPublic());
+            PublicKey pubKey = loadPublicKey(pubKeyString);
+            System.out.println(pubKeyString);
+            System.out.println("END PUBLIC KEY");
+            System.out.println("-----------------");
+
+            System.out.println("\n\n");
+            System.out.println("PRINTING PRIVATE KEY");
+
+            String privKeyString = savePrivateKey(pair.getPrivate());
+            PrivateKey privKey = loadPrivateKey(privKeyString);
+            System.out.println(privKeyString);
+
+            System.out.println("END PRIVATE KEY");
+            System.out.println("-----------------");
+           // Key pubKey = pair.getPublic();
+
+            //Key privKey = pair.getPrivate();
 
             cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
-            byte[] cipherText = cipher.doFinal(input);
-//            System.out.println("the public key is: \n\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT) + "\nENDPUBLIC");
-//            System.out.println("the private key is: \n\n " + Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT) + "\nENDPRIVATE");
+            byte[] encSymKey = cipher.doFinal(input);
 
-            System.out.println("The private key num bytes on create: " + (Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).getBytes().length));
-
-            saveKeyToSharedPreferences(Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT), PUBLIC_KEY);
-            saveKeyToSharedPreferences(Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT), PRIVATE_KEY);
-            saveEncryptedKeyToSharedPreferences(cipherText);
+            System.out.println("PRINTING ENCRYPTED SYMMETRIC KEY");
+            System.out.println(Base64.encodeToString(encSymKey, Base64.DEFAULT));
+            System.out.println("END ENCRYPTED SYMMETRIC KEY");
+            System.out.println("-----------------");
 
 
-            byte[] endResult = getSymmetricKey(cipherText, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
-            System.out.println("the end result is: " + new String(endResult));
+
+            saveKeyToSharedPreferences(pubKeyString, PUBLIC_KEY);
+            saveKeyToSharedPreferences(pubKeyString, PRIVATE_KEY);
+            saveEncryptedKeyToSharedPreferences(encSymKey);
+
+
+//            byte[] endResult = getSymmetricKey(cipherText, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
+//            System.out.println("the end result is: \n" + new String(endResult));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException
-                | IllegalBlockSizeException | BadPaddingException | IOException e) {
+                | IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             System.out.println("there was an error :(");
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
         }
     }
+
 
     public static void saveKeyToSharedPreferences(String key, String keyName) {
         SharedPreferences sp = context.getSharedPreferences("KEY", Context.MODE_PRIVATE);
@@ -270,8 +343,8 @@ public class CryptoUtils {
     public static void saveEncryptedKeyToSharedPreferences(byte[] encryptedKey) {
         // convert cipher text to byte 64 string
         String keyAsString = Base64.encodeToString(encryptedKey, Base64.DEFAULT);
-        System.out.println("THE ENCRYPTED SYMMETRIC KEY");
-        System.out.println(keyAsString);
+        System.out.println("THE ENCRYPTED SYMMETRIC KEY: \n"+keyAsString);
+        //System.out.println(keyAsString);
         saveKeyToSharedPreferences(keyAsString, ENCRYPTED_KEY);
 
     }
