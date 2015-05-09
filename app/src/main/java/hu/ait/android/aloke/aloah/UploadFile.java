@@ -46,17 +46,15 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
             CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
 
             // Retrieve reference to a previously created container.
-            CloudBlobContainer container = blobClient.getContainerReference("testcontainer");
+            CloudBlobContainer container = blobClient.getContainerReference(MainActivity.TEST_CONTAINER);
             CloudBlockBlob blob = container.getBlockBlobReference(inputFile.getName() + ".encrypted");
-
-
-            File tempKeyFile = downloadTempKeyFile(blobClient);
 
             // encrypt the file
             String key = ((MainActivity) context).inputKey;
             success = CryptoUtils.encrypt(inputFile, tempFile);
             blob.upload(new java.io.FileInputStream(tempFile), tempFile.length());
 
+            tempFile.delete();
         } catch (IOException | StorageException | URISyntaxException e) {
             e.printStackTrace();
             return false;

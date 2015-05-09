@@ -43,7 +43,10 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
                 CryptoUtils.decrypt(tempFile, outputFile);
             } catch (MediaCodec.CryptoException e1) {
                 e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } finally {
+                tempFile.delete();
             }
+
 
 
         } catch (StorageException | URISyntaxException | IOException e) {

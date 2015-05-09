@@ -328,6 +328,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
             saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, firstLine);
 
+            tempFile.delete();
         }
 
         private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
