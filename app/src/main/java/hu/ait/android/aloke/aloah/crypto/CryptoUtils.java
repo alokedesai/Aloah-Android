@@ -137,7 +137,7 @@ public class CryptoUtils {
 
         // get the first line from keyfile and
         String firstLine = getKey(ENCRYPTED_KEY);
-        System.out.println("the first line in getSymmetricKey is: \n:" + firstLine );
+        System.out.println("the first line in getSymmetricKey is: \n" + firstLine );
         byte[] keyBytes = Base64.decode(firstLine, Base64.DEFAULT);
 
         // decrypt keyBytes into the actual symmetric key
@@ -215,7 +215,7 @@ public class CryptoUtils {
         return privKey;
     }
 
-    public static byte[] printKeys(String text) {
+    public static byte[] createRSAKeys(String text) {
         byte[] input = text.getBytes();
 
         try {
@@ -231,20 +231,20 @@ public class CryptoUtils {
             Key privKey = pair.getPrivate();
 
             cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
-            byte[] cipherText = cipher.doFinal(input);
+            byte[] encryptedKey = cipher.doFinal(input);
 //            System.out.println("the public key is: \n\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT) + "\nENDPUBLIC");
 //            System.out.println("the private key is: \n\n " + Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT) + "\nENDPRIVATE");
 
-            System.out.println("The private key num bytes on create: " + (Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).getBytes().length));
+//            System.out.println("The private key num bytes on create: " + (Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).getBytes().length));
 
             saveKeyToSharedPreferences(Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT), PUBLIC_KEY);
             saveKeyToSharedPreferences(Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT), PRIVATE_KEY);
-            saveEncryptedKeyToSharedPreferences(cipherText);
+            saveEncryptedKeyToSharedPreferences(encryptedKey);
 
 
-            byte[] endResult = getSymmetricKey(cipherText, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
+            byte[] endResult = getSymmetricKey(encryptedKey, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
             System.out.println("the end result is: " + new String(endResult));
-            return cipherText;
+            return encryptedKey;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException
                 | IllegalBlockSizeException | BadPaddingException | IOException e) {
             e.printStackTrace();
@@ -275,8 +275,8 @@ public class CryptoUtils {
 
     }
 
-    public static byte[] getEncryptedKey() {
-        String keyAsString = getKey(ENCRYPTED_KEY);
-        return Base64.decode(keyAsString, Base64.DEFAULT);
-    }
+//    public static byte[] getEncryptedKey() {
+//        String keyAsString = getKey(ENCRYPTED_KEY);
+//        return Base64.decode(keyAsString, Base64.DEFAULT);
+//    }
 }

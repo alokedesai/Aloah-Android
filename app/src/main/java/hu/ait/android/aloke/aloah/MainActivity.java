@@ -89,28 +89,17 @@ public class MainActivity extends ActionBarActivity{
 
         loadBlobs();
 
-        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
-        String key = sp.getString("USER_ID", "-1");
+        //UNCOMMENT THIS SECTION WHEN YOU NEED TO RECREATE PUBLIC AND PRIVATE KEYS
 
-        if ("-1".equals(key)) {
-            key = "1";
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString("USER_ID", key);
-            editor.commit();  //Use commit() because we want user_id stored immediately
+//        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys("passwordpassword");
+//        String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
+//        System.out.println("the encrypted key is: \n" + encryptedKeyString );
+//        System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
+//
+//        encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
+//        uploadEncryptedKey(encryptedKeyString);
 
-            System.out.println("the value of the user id is: ");
-            // create public and private keys
-            CryptoUtils.setContext(this);
-            byte[] encryptedKeyBytes = CryptoUtils.printKeys("passwordpassword");
-            String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
-            System.out.println("the encrypted key is: \n" + encryptedKeyString );
-            System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
-
-            encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
-            uploadEncryptedKey(encryptedKeyString);
-        }
-
-
+        //END SECTION
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -244,6 +233,11 @@ public class MainActivity extends ActionBarActivity{
         asyncTask.execute(encryptedKey);
     }
 
+//    private void downloadEncryptedKey() {
+//        AsyncTask<String, Void, Boolean> asyncTask = new DownloadEncryptedKey(this);
+//        asyncTask.execute();
+//    }
+
 
     public void makeToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
@@ -338,6 +332,4 @@ public class MainActivity extends ActionBarActivity{
         editor.putString(key, value);
         editor.apply();
     }
-
-
 }
