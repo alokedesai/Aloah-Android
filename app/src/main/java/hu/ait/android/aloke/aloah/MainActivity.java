@@ -1,7 +1,6 @@
 package hu.ait.android.aloke.aloah;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,8 +9,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
@@ -21,7 +18,6 @@ import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -33,25 +29,20 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.nio.BufferUnderflowException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.model.ImageItem;
 
 
-public class MainActivity extends ActionBarActivity implements KeyEntryDialog.KeyEntryDialogListener{
+public class MainActivity extends ActionBarActivity{
     public static final String STORAGE_CONNECTION_STRING =
             "DefaultEndpointsProtocol=https;" +
                     "AccountName=aloah;" +
@@ -72,10 +63,10 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
     public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
-    private ArrayList<ListBlobItem> blobs = new ArrayList<>();
+    private ArrayList<ImageItem> images = new ArrayList<>();
     private ListView listView;
     private boolean canClickBtnRefresh = false;
-
+    private BlobListAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
 
@@ -194,9 +185,9 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         asyncTask.execute();
     }
 
-    private void setBlobAdapter(ArrayList<ListBlobItem> blobs) {
+    private void setBlobAdapter(ArrayList<ImageItem> blobs) {
 
-        BlobListAdapter adapter = new BlobListAdapter(blobs, this);
+        adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
         mSwipeRefreshLayout.setRefreshing(false);
     }
@@ -207,36 +198,36 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
         keyEntryDialog.show(fragmentTransaction, KeyEntryDialog.TAG);
     }
 
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog, String key) {
-        makeToast("User input key "+ key);
-        inputKey = key;
+//    @Override
+//    public void onDialogPositiveClick(DialogFragment dialog, String key) {
+//        makeToast("User input key "+ key);
+//        inputKey = key;
+//
+//        if (currentState == DOWNLOAD_STATE) {
+//            downloadFile(blobToDownload);
+//            blobToDownload = null;
+//        } else if (currentState == UPLOAD_STATE) {
+//            uploadFile(uriForUpload);
+//            uriForUpload = null;
+//        }
+//    }
 
-        if (currentState == DOWNLOAD_STATE) {
-            downloadFile(blobToDownload);
-            blobToDownload = null;
-        } else if (currentState == UPLOAD_STATE) {
-            uploadFile(uriForUpload);
-            uriForUpload = null;
-        }
-    }
 
-    @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
-        makeToast("Cancelled");
-
-        dialog.dismiss();
-        blobToDownload = null;
-
-    }
-
-    public void downloadFile(CloudBlockBlob blob) {
+    public void downloadFile(CloudBlockBlob blob, int index) {
         if (blob == null) {
             makeToast("Null blob, download failed.");
             return;
         }
-        AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this);
+        AsyncTask<CloudBlockBlob, Void, File> asyncTask = new DownloadFile(this, index);
         asyncTask.execute(blob);
+    }
+
+    public void setIsDownloaded(int index) {
+        adapter.setIsDownloaded(index);
+    }
+
+    public void setFile(int index, File file) {
+        adapter.setFile(index, file);
     }
 
     private void uploadFile(Uri uri) {
@@ -278,8 +269,8 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
         @Override
         protected void onPreExecute() {
-            // reset blobs
-            blobs.clear();
+            // reset images
+            images.clear();
         }
 
         @Override
@@ -291,7 +282,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             }
 
 
-            // get all the blobs from a container
+            // get all the images from a container
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
 
             try {
@@ -299,7 +290,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
                 CloudBlobContainer container = blobClient.getContainerReference("testcontainer");
 
                 for (ListBlobItem b : container.listBlobs()) {
-                    blobs.add(b);
+                    images.add(new ImageItem(b));
                 }
 
                 saveEncryptedKeyToSharedPreferences(blobClient);
@@ -316,7 +307,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
             super.onPostExecute(aVoid);
 
             canClickBtnRefresh = true;
-            setBlobAdapter(blobs);
+            setBlobAdapter(images);
         }
 
         private void saveEncryptedKeyToSharedPreferences(CloudBlobClient blobClient) throws StorageException, IOException, URISyntaxException {
@@ -324,7 +315,7 @@ public class MainActivity extends ActionBarActivity implements KeyEntryDialog.Ke
 
             BufferedReader brTest = new BufferedReader(new FileReader(tempFile));
             String firstLine = brTest.readLine();
-            System.out.println("First line from load blobs: " + firstLine);
+            System.out.println("First line from load images: " + firstLine);
 
             saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, firstLine);
 

@@ -17,32 +17,35 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 /**
  * Created by Aloke on 4/16/15.
  */
-public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
+public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, File> {
 
     private static final String FILTER_DOWNLOAD_FILE = "FILTER_DOWNLOAD_FILE";
     private Context context;
+    private int index;
 
-    public DownloadFile(Context context) {
+    public DownloadFile(Context context, int index) {
         this.context = context;
+        this.index = index;
     }
 
     @Override
-    protected Boolean doInBackground(CloudBlockBlob... params) {
+    protected File doInBackground(CloudBlockBlob... params) {
         CloudBlockBlob blob = params[0];
-
+        File outputFile = null;
         try {
             String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
             blob.downloadToFile(tempFile.getAbsolutePath());
 
-            File outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
+            outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
 
             // try to decrypt temp file and put it in outputfile
             try {
                 CryptoUtils.decrypt(tempFile, outputFile);
             } catch (MediaCodec.CryptoException e1) {
-                e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e1.printStackTrace();
+                outputFile = null;
             } finally {
                 tempFile.delete();
             }
@@ -51,16 +54,20 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
         } catch (StorageException | URISyntaxException | IOException e) {
             e.printStackTrace();
-            return false;
+            outputFile = null;
         }
 
-        return true;
+        return outputFile;
     }
 
     @Override
-    protected void onPostExecute(Boolean result) {
-        if (result) {
+    protected void onPostExecute(File result) {
+        if (result != null) {
             ((MainActivity) context).makeToast("File successfully downloaded!");
+            ((MainActivity) context).setIsDownloaded(index);
+            ((MainActivity) context).setFile(index, result);
+
+
         } else {
             ((MainActivity) context).makeToast("There was an error while downloading!");
         }

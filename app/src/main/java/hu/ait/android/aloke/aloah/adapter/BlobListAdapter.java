@@ -2,6 +2,8 @@ package hu.ait.android.aloke.aloah.adapter;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,23 +18,35 @@ import com.microsoft.azure.storage.blob.BlobListingDetails;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.R;
+import hu.ait.android.aloke.aloah.model.ImageItem;
 
 /**
  * Created by Aloke on 4/15/15.
  */
 public class BlobListAdapter extends BaseAdapter {
-    private List<ListBlobItem> blobs;
+    private List<ImageItem> blobs;
     private Context context;
 
 
-    public BlobListAdapter(List<ListBlobItem> blobs, Context context) {
+    public BlobListAdapter(List<ImageItem> blobs, Context context) {
         this.blobs = blobs;
         this.context = context;
+    }
+
+
+    public void setIsDownloaded(int index) {
+        blobs.get(index).setIsDownloaded(true);
+        notifyDataSetChanged();
+    }
+
+    public void setFile(int index, File file){
+        blobs.get(index).setFile(file);
     }
 
     @Override
@@ -59,20 +73,44 @@ public class BlobListAdapter extends BaseAdapter {
             ViewHolder holder = new ViewHolder();
             holder.tvBlobName = (TextView) v.findViewById(R.id.tvBlobName);
             holder.btnBlobDownload = (Button) v.findViewById(R.id.btnBlobDownload);
+            holder.btnViewImage = (Button) v.findViewById(R.id.btnViewImage);
 
             v.setTag(holder);
         }
 
-        final ListBlobItem blob = blobs.get(position);
+        final ImageItem imageItem = blobs.get(position);
 
-        if (blob != null) {
-            ViewHolder holder = (ViewHolder) v.getTag();
-            holder.tvBlobName.setText(blob.getUri().toString());
+        if (imageItem != null) {
+            final ViewHolder holder = (ViewHolder) v.getTag();
+
+            final ListBlobItem blobItem = imageItem.getBlob();
+            holder.tvBlobName.setText(blobItem.getUri().toString());
             holder.btnBlobDownload.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    CloudBlockBlob b = ((CloudBlockBlob) blob);
-                    ((MainActivity) context).downloadFile(b);
+                    CloudBlockBlob b = ((CloudBlockBlob) blobItem);
+                    ((MainActivity) context).downloadFile(b, position);
+
+//                    if (!imageItem.isDownloaded()) {
+//                        imageItem.setIsDownloaded(true);
+//                        holder.btnViewImage.setVisibility(View.VISIBLE);
+//                    }
+                }
+            });
+
+            if (imageItem.isDownloaded()) {
+                holder.btnViewImage.setVisibility(View.VISIBLE);
+            }
+
+            holder.btnViewImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    File file = imageItem.getFile();
+                    Uri path = Uri.fromFile(file);
+                    Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
+                    imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    imageOpenIntent.setDataAndType(path, "image/*");
+                    context.startActivity(imageOpenIntent);
                 }
             });
         }
@@ -83,6 +121,7 @@ public class BlobListAdapter extends BaseAdapter {
     static class ViewHolder {
         TextView tvBlobName;
         Button btnBlobDownload;
+        Button btnViewImage;
     }
 
 }
