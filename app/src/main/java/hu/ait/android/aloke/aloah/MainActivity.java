@@ -93,7 +93,7 @@ public class MainActivity extends ActionBarActivity{
         String key = sp.getString("USER_ID", "-1");
 
         if ("-1".equals(key)) {
-            key = "2";
+            key = "1";
             SharedPreferences.Editor editor = sp.edit();
             editor.putString("USER_ID", key);
             editor.commit();  //Use commit() because we want user_id stored immediately
@@ -339,5 +339,13 @@ public class MainActivity extends ActionBarActivity{
         editor.apply();
     }
 
+    public void openImageFromImageItem(ImageItem imageItem) {
+        File file = imageItem.getFile();
+        Uri path = Uri.fromFile(file);
+        Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
+        imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        imageOpenIntent.setDataAndType(path, "image/*");
+        startActivity(imageOpenIntent);
+    }
 
 }

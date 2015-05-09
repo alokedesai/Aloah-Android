@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +22,7 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 
 import hu.ait.android.aloke.aloah.MainActivity;
+import hu.ait.android.aloke.aloah.OnOverflowSelectedListener;
 import hu.ait.android.aloke.aloah.R;
 import hu.ait.android.aloke.aloah.model.ImageItem;
 
@@ -76,9 +80,8 @@ public class BlobListAdapter extends BaseAdapter {
             v = LayoutInflater.from(context).inflate(R.layout.row_blob_item, null);
             ViewHolder holder = new ViewHolder();
             holder.tvBlobName = (TextView) v.findViewById(R.id.tvBlobName);
-            holder.btnBlobDownload = (Button) v.findViewById(R.id.btnBlobDownload);
-            holder.btnViewImage = (Button) v.findViewById(R.id.btnViewImage);
             holder.tvLastModified =  (TextView) v.findViewById(R.id.tvLastModified);
+            holder.ivOverflow = (ImageView) v.findViewById(R.id.ivOverflow);
 
             v.setTag(holder);
         }
@@ -89,37 +92,19 @@ public class BlobListAdapter extends BaseAdapter {
             final ViewHolder holder = (ViewHolder) v.getTag();
 
             final ListBlobItem blobItem = imageItem.getBlob();
+            final CloudBlockBlob cloudBlockBlob = (CloudBlockBlob) blobItem;
 
-            holder.tvLastModified.setText(getFormattedDate((CloudBlockBlob) blobItem));
-            holder.tvBlobName.setText(blobItem.getUri().toString());
-            holder.btnBlobDownload.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    CloudBlockBlob b = ((CloudBlockBlob) blobItem);
-                    ((MainActivity) context).downloadFile(b, position);
+            holder.tvLastModified.setText(getFormattedDate(cloudBlockBlob));
 
-//                    if (!imageItem.isDownloaded()) {
-//                        imageItem.setIsDownloaded(true);
-//                        holder.btnViewImage.setVisibility(View.VISIBLE);
-//                    }
-                }
-            });
-
-            if (imageItem.isDownloaded()) {
-                holder.btnViewImage.setVisibility(View.VISIBLE);
+            try {
+                holder.tvBlobName.setText(cloudBlockBlob.getName());
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+                holder.tvBlobName.setText(blobItem.getUri().toString());
             }
 
-            holder.btnViewImage.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    File file = imageItem.getFile();
-                    Uri path = Uri.fromFile(file);
-                    Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
-                    imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    imageOpenIntent.setDataAndType(path, "image/*");
-                    context.startActivity(imageOpenIntent);
-                }
-            });
+            holder.ivOverflow.setOnClickListener(new OnOverflowSelectedListener(context, imageItem, position));
+
         }
 
         return v;
@@ -129,15 +114,13 @@ public class BlobListAdapter extends BaseAdapter {
         Date date = blobItem.getProperties().getLastModified();
         DateFormat df = new SimpleDateFormat("MM/dd 'at' hh:mm:ss", Locale.US);
         String formattedDate = df.format(date);
-
         return "Last modified " + formattedDate;
     }
 
     static class ViewHolder {
         TextView tvBlobName;
         TextView tvLastModified;
-        Button btnBlobDownload;
-        Button btnViewImage;
+        ImageView ivOverflow;
     }
 
 }
