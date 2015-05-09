@@ -93,7 +93,7 @@ public class MainActivity extends ActionBarActivity{
         String key = sp.getString("USER_ID", "-1");
 
         if ("-1".equals(key)) {
-            key = "1";
+            key = "2";
             SharedPreferences.Editor editor = sp.edit();
             editor.putString("USER_ID", key);
             editor.commit();  //Use commit() because we want user_id stored immediately

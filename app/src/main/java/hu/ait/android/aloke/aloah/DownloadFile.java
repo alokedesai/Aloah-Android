@@ -1,5 +1,6 @@
 package hu.ait.android.aloke.aloah;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.AsyncTask;
@@ -22,10 +23,23 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, File> {
     private static final String FILTER_DOWNLOAD_FILE = "FILTER_DOWNLOAD_FILE";
     private Context context;
     private int index;
+    private ProgressDialog progressDialog;
+
 
     public DownloadFile(Context context, int index) {
         this.context = context;
         this.index = index;
+
+        progressDialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog.setMessage("Downloading File");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+
     }
 
     @Override
@@ -39,7 +53,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, File> {
             blob.downloadToFile(tempFile.getAbsolutePath());
 
             outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
-
+            System.out.println("the proper path should be: " + outputFile.getAbsolutePath());
             // try to decrypt temp file and put it in outputfile
             try {
                 CryptoUtils.decrypt(tempFile, outputFile);
@@ -70,6 +84,10 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, File> {
 
         } else {
             ((MainActivity) context).makeToast("There was an error while downloading!");
+        }
+
+        if (progressDialog.isShowing()) {
+            progressDialog.dismiss();
         }
 
     }

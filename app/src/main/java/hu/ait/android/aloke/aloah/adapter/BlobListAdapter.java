@@ -20,7 +20,11 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.R;
@@ -74,6 +78,7 @@ public class BlobListAdapter extends BaseAdapter {
             holder.tvBlobName = (TextView) v.findViewById(R.id.tvBlobName);
             holder.btnBlobDownload = (Button) v.findViewById(R.id.btnBlobDownload);
             holder.btnViewImage = (Button) v.findViewById(R.id.btnViewImage);
+            holder.tvLastModified =  (TextView) v.findViewById(R.id.tvLastModified);
 
             v.setTag(holder);
         }
@@ -84,6 +89,8 @@ public class BlobListAdapter extends BaseAdapter {
             final ViewHolder holder = (ViewHolder) v.getTag();
 
             final ListBlobItem blobItem = imageItem.getBlob();
+
+            holder.tvLastModified.setText(getFormattedDate((CloudBlockBlob) blobItem));
             holder.tvBlobName.setText(blobItem.getUri().toString());
             holder.btnBlobDownload.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -118,8 +125,17 @@ public class BlobListAdapter extends BaseAdapter {
         return v;
     }
 
+    private String getFormattedDate(CloudBlockBlob blobItem) {
+        Date date = blobItem.getProperties().getLastModified();
+        DateFormat df = new SimpleDateFormat("MM/dd 'at' hh:mm:ss", Locale.US);
+        String formattedDate = df.format(date);
+
+        return "Last modified " + formattedDate;
+    }
+
     static class ViewHolder {
         TextView tvBlobName;
+        TextView tvLastModified;
         Button btnBlobDownload;
         Button btnViewImage;
     }

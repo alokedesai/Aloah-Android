@@ -1,5 +1,6 @@
 package hu.ait.android.aloke.aloah;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,11 +25,21 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
  */
 public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
     private Context context;
+    private ProgressDialog progressDialog;
 
     public static final String FILTER_RESULT = "FILTER_RESULT";
 
     public UploadFile(Context context) {
         this.context = context;
+        progressDialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog.setMessage("Uploading File");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
     }
 
     @Override
@@ -64,6 +75,10 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean result) {
+        if (progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+
         if (result) {
             ((MainActivity) context).makeToast("File uploaded successfully!");
             Intent intent = new Intent(FILTER_RESULT);

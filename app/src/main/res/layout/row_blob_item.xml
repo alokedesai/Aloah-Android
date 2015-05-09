@@ -28,4 +28,9 @@
             android:visibility="gone"
             android:text="Preview Image"/>
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvLastModified"/>
 </LinearLayout>
