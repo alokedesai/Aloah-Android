@@ -332,4 +332,13 @@ public class MainActivity extends ActionBarActivity{
         editor.putString(key, value);
         editor.apply();
     }
+
+    public void openImageFromImageItem(ImageItem imageItem) {
+        File file = imageItem.getFile();
+        Uri path = Uri.fromFile(file);
+        Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
+        imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        imageOpenIntent.setDataAndType(path, "image/*");
+        startActivity(imageOpenIntent);
+    }
 }
