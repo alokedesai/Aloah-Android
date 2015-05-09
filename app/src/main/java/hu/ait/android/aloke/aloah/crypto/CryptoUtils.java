@@ -54,9 +54,13 @@ public class CryptoUtils {
     private static final String PUBLIC_KEY = "PUBLIC_KEY";
     public static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
-    private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
+    private static final String ALGORITHM = "AES/GCM/NoPadding";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static Context context;
+
+    public static final int AES_KEY_SIZE = 128;    // in bits
+    public static final int GCM_NONCE_LENGTH = 12; // in bytes
+    public static final int GCM_TAG_LENGTH = 16;   // in bytes
 
     public static boolean encrypt(File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
@@ -75,7 +79,16 @@ public class CryptoUtils {
         try {
             Key secretKey = new SecretKeySpec(getSymmetricKey(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(cipherMode, secretKey);
+            SecureRandom random = new SecureRandom();
+            final byte[] nonce = new byte[GCM_NONCE_LENGTH];
+            random.nextBytes(nonce);
+            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH*8, nonce);
+
+
+            cipher.init(cipherMode, secretKey, spec);
+
+            byte[] tag = new byte[GCM_TAG_LENGTH];
+            cipher.updateAAD(tag);
 
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
@@ -110,6 +123,8 @@ public class CryptoUtils {
                 | IllegalBlockSizeException | IOException ex) {
             ex.printStackTrace();
             success = false;
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
         return success;
     }
