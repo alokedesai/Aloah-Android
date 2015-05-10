@@ -27,7 +27,7 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
     private Context context;
     private ProgressDialog progressDialog;
 
-    public static final String FILTER_RESULT = "FILTER_RESULT";
+    public static final String FILTER_RESULT = "UPLOAD_FILE_FILTER_RESULT";
 
     public UploadFile(Context context) {
         this.context = context;
