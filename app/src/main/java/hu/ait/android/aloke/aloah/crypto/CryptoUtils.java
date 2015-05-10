@@ -54,9 +54,13 @@ public class CryptoUtils {
     private static final String PUBLIC_KEY = "PUBLIC_KEY";
     public static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
-    private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
+    private static final String ALGORITHM = "AES/GCM/NoPadding";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static Context context;
+
+    public static final int AES_KEY_SIZE = 128;    // in bits
+    public static final int GCM_NONCE_LENGTH = 12; // in bytes
+    public static final int GCM_TAG_LENGTH = 16;   // in bytes
 
     public static boolean encrypt(File inputFile, File outputFile)
             throws MediaCodec.CryptoException {
@@ -75,7 +79,16 @@ public class CryptoUtils {
         try {
             Key secretKey = new SecretKeySpec(getSymmetricKey(), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(cipherMode, secretKey);
+            SecureRandom random = new SecureRandom();
+            final byte[] nonce = new byte[GCM_NONCE_LENGTH];
+            random.nextBytes(nonce);
+            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH*8, nonce);
+
+
+            cipher.init(cipherMode, secretKey, spec);
+
+            byte[] tag = new byte[GCM_TAG_LENGTH];
+            cipher.updateAAD(tag);
 
             FileInputStream inputStream = new FileInputStream(inputFile);
             byte[] inputBytes = new byte[(int) inputFile.length()];
@@ -110,6 +123,8 @@ public class CryptoUtils {
                 | IllegalBlockSizeException | IOException ex) {
             ex.printStackTrace();
             success = false;
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
         return success;
     }
@@ -137,7 +152,7 @@ public class CryptoUtils {
 
         // get the first line from keyfile and
         String firstLine = getKey(ENCRYPTED_KEY);
-        System.out.println("the first line in getSymmetricKey is: \n:" + firstLine );
+        System.out.println("the first line in getSymmetricKey is: \n" + firstLine );
         byte[] keyBytes = Base64.decode(firstLine, Base64.DEFAULT);
 
         // decrypt keyBytes into the actual symmetric key
@@ -215,7 +230,7 @@ public class CryptoUtils {
         return privKey;
     }
 
-    public static byte[] printKeys(String text) {
+    public static byte[] createRSAKeys(String text) {
         byte[] input = text.getBytes();
 
         try {
@@ -231,20 +246,20 @@ public class CryptoUtils {
             Key privKey = pair.getPrivate();
 
             cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
-            byte[] cipherText = cipher.doFinal(input);
+            byte[] encryptedKey = cipher.doFinal(input);
 //            System.out.println("the public key is: \n\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT) + "\nENDPUBLIC");
 //            System.out.println("the private key is: \n\n " + Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT) + "\nENDPRIVATE");
 
-            System.out.println("The private key num bytes on create: " + (Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).getBytes().length));
+//            System.out.println("The private key num bytes on create: " + (Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).getBytes().length));
 
             saveKeyToSharedPreferences(Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT), PUBLIC_KEY);
             saveKeyToSharedPreferences(Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT), PRIVATE_KEY);
-            saveEncryptedKeyToSharedPreferences(cipherText);
+            saveEncryptedKeyToSharedPreferences(encryptedKey);
 
 
-            byte[] endResult = getSymmetricKey(cipherText, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
+            byte[] endResult = getSymmetricKey(encryptedKey, Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT));
             System.out.println("the end result is: " + new String(endResult));
-            return cipherText;
+            return encryptedKey;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException
                 | IllegalBlockSizeException | BadPaddingException | IOException e) {
             e.printStackTrace();
@@ -275,8 +290,8 @@ public class CryptoUtils {
 
     }
 
-    public static byte[] getEncryptedKey() {
-        String keyAsString = getKey(ENCRYPTED_KEY);
-        return Base64.decode(keyAsString, Base64.DEFAULT);
-    }
+//    public static byte[] getEncryptedKey() {
+//        String keyAsString = getKey(ENCRYPTED_KEY);
+//        return Base64.decode(keyAsString, Base64.DEFAULT);
+//    }
 }
