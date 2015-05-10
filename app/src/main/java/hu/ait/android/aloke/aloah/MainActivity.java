@@ -207,7 +207,7 @@ public class MainActivity extends ActionBarActivity{
             makeToast("Null blob, download failed.");
             return;
         }
-        AsyncTask<CloudBlockBlob, Void, File> asyncTask = new DownloadFile(this, index);
+        AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this, index);
         asyncTask.execute(blob);
     }
 
