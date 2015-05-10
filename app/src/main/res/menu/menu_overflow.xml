@@ -12,5 +12,9 @@
         android:icon="@drawable/image"
         android:title="View Image" />
 
+    <item
+        android:id="@+id/item_overflow_delete"
+        android:icon="@drawable/trash"
+        android:title="Delete from Server" />
 
 </menu>

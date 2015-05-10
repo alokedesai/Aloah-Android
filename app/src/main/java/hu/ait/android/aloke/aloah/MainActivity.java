@@ -142,12 +142,15 @@ public class MainActivity extends ActionBarActivity{
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 uploadDoneReceiver, new IntentFilter(UploadFile.FILTER_RESULT));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                deleteDoneReceiver, new IntentFilter(DeleteFile.FILTER_RESULT));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadDoneReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(deleteDoneReceiver);
     }
 
     @Override
@@ -258,6 +261,13 @@ public class MainActivity extends ActionBarActivity{
         }
     };
 
+    private BroadcastReceiver deleteDoneReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            loadBlobs();
+        }
+    };
+
 
     class LoadBlobs extends AsyncTask<String, Void, Void> {
 
@@ -340,5 +350,10 @@ public class MainActivity extends ActionBarActivity{
         imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         imageOpenIntent.setDataAndType(path, "image/*");
         startActivity(imageOpenIntent);
+    }
+
+    public void deleteFile(CloudBlockBlob blob) {
+        AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DeleteFile(this);
+        asyncTask.execute(blob);
     }
 }

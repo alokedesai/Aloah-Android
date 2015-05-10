@@ -40,6 +40,8 @@ public class OnOverflowSelectedListener implements View.OnClickListener{
                     case R.id.item_overflow_preview:
                         ((MainActivity) context).openImageFromImageItem(imageItem);
                         return true;
+                    case R.id.item_overflow_delete:
+                        ((MainActivity) context).deleteFile((CloudBlockBlob) imageItem.getBlob());
                     default:
                         return super.onMenuItemSelected(menu, item);
                 }
@@ -52,7 +54,7 @@ public class OnOverflowSelectedListener implements View.OnClickListener{
             popupMenu.getMenu().removeItem(R.id.item_overflow_preview);
         }
 
-        // Force icons to show
+        // Force icons to show using a crazy Java reflection hack
         Object menuHelper;
         Class[] argTypes;
         try {
