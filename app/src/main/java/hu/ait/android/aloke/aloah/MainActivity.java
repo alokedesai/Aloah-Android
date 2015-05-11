@@ -91,13 +91,13 @@ public class MainActivity extends ActionBarActivity{
 
         //UNCOMMENT THIS SECTION WHEN YOU NEED TO RECREATE PUBLIC AND PRIVATE KEYS
 
-        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys("passwordpassword");
-        String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
-        System.out.println("the encrypted key is: \n" + encryptedKeyString );
-        System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
-
-        encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
-        uploadEncryptedKey(encryptedKeyString);
+//        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys(KEY);
+//        String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
+//        System.out.println("the encrypted key is: \n" + encryptedKeyString );
+//        System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
+//
+//        encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
+//        uploadEncryptedKey(encryptedKeyString);
 
         //END SECTION
 

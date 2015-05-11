@@ -49,7 +49,8 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         CloudBlockBlob blob = params[0];
 
         try {
-            String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+            String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/";
 
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
             blob.downloadToFile(tempFile.getAbsolutePath());
