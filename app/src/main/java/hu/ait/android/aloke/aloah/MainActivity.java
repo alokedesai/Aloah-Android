@@ -239,17 +239,11 @@ public class MainActivity extends ActionBarActivity{
         AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
         asyncTask.execute(uri);
     }
-    
+
     private void uploadEncryptedKey(String encryptedKey) {
         AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(this);
         asyncTask.execute(encryptedKey);
     }
-
-//    private void downloadEncryptedKey() {
-//        AsyncTask<String, Void, Boolean> asyncTask = new DownloadEncryptedKey(this);
-//        asyncTask.execute();
-//    }
-
 
     public void makeToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
