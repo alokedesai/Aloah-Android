@@ -39,6 +39,7 @@ import java.util.ArrayList;
 
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.fragment.WelcomeDialogFragment;
 import hu.ait.android.aloke.aloah.model.ImageItem;
 
 
@@ -74,6 +75,9 @@ public class MainActivity extends ActionBarActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // launch dialog
+//        launchWelcomeDialog();
 
         CryptoUtils.setContext(this);
 
@@ -113,6 +117,11 @@ public class MainActivity extends ActionBarActivity{
             }
         });
 
+    }
+
+    private void launchWelcomeDialog() {
+        WelcomeDialogFragment dialog = new WelcomeDialogFragment();
+        dialog.show(getSupportFragmentManager(), WelcomeDialogFragment.TAG);
     }
 
     @Override
