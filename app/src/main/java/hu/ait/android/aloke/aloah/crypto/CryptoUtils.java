@@ -159,7 +159,7 @@ public class CryptoUtils {
     }
 
     public static byte[] createRSAKeys() {
-        byte[] input = createSymmetricKey().getEncoded();
+//        byte[] input = createSymmetricKey().getEncoded();
 
         try {
             Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
@@ -172,15 +172,18 @@ public class CryptoUtils {
             System.out.println("the pubkey in RSA is: " + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT));
 
             System.out.println("The new pub key is:\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT).replaceAll("\n", ""));
-            cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
-            byte[] encryptedKey = cipher.doFinal(input);
+//            cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
+//            byte[] encryptedKey = cipher.doFinal(input);
 
             saveRSAKeysToSharedPreferences(pubKey, privKey);
-            saveEncryptedKeyToSharedPreferences(encryptedKey);
+//            saveEncryptedKeyToSharedPreferences(encryptedKey);
 
-            return encryptedKey;
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException |
-                IllegalBlockSizeException | BadPaddingException e) {
+//            return encryptedKey;
+            return null;
+        }
+//        catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException |
+//                IllegalBlockSizeException | BadPaddingException e) {
+        catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException e) {
             e.printStackTrace();
             System.out.println("there was an error :(");
             return null;
@@ -234,31 +237,31 @@ public class CryptoUtils {
     }
 
     public static void symmetricKeyHandshake() {
-//        Key symmetricKey = createSymmetricKey();
-
+        Key symmetricKey = createSymmetricKey();
+//        createRSAKeys();
 //        System.out.println("the key in the handshake is: " + getKey(PUBLIC_KEY));
-//        String[] publicKeys = {getKey(PUBLIC_KEY)};
-        String[] publicKeys = {""};
+        String[] publicKeys = {getKey(PUBLIC_KEY)};
+
         for (int i = 0; i < publicKeys.length; i++) {
             // decode key into a key object
+            Key publicKey = getPublicKeyFromString(publicKeys[i]);
+//            byte[] encryptedSymmetricKey = createRSAKeys();
 
-            byte[] encryptedSymmetricKey = createRSAKeys();
+            byte[] encryptedSymmetricKey = null;
 
-//            byte[] encryptedSymmetricKey = null;
-//
-//            try {
-//                SecureRandom random = new SecureRandom();
-//                Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
-//                cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
-//                encryptedSymmetricKey = cipher.doFinal(symmetricKey.getEncoded());
-//
-//                if (i == 0) {
-//                    System.out.println("the first line should be: " + Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT));
-//                }
-//            } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException
-//                    | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                SecureRandom random = new SecureRandom();
+                Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
+                cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
+                encryptedSymmetricKey = cipher.doFinal(symmetricKey.getEncoded());
+
+                if (i == 0) {
+                    System.out.println("the first line should be: " + Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT));
+                }
+            } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException
+                    | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+                e.printStackTrace();
+            }
 
             AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
             asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
