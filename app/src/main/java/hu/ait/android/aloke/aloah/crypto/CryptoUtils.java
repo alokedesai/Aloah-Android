@@ -239,9 +239,10 @@ public class CryptoUtils {
     public static void symmetricKeyHandshake() {
         Key symmetricKey = createSymmetricKey();
 //        createRSAKeys();
-//        System.out.println("the key in the handshake is: " + getKey(PUBLIC_KEY));
-        String[] publicKeys = {getKey(PUBLIC_KEY)};
-
+        System.out.println("the key in the handshake is: " + getKey(PUBLIC_KEY).replaceAll("\n", ""));
+//        String[] publicKeys = {getKey(PUBLIC_KEY)};
+//        String[] publicKeys = {context.getString(R.string.public_key)};
+        String[] publicKeys = context.getResources().getStringArray(R.array.public_keys);
         for (int i = 0; i < publicKeys.length; i++) {
             // decode key into a key object
             Key publicKey = getPublicKeyFromString(publicKeys[i]);
