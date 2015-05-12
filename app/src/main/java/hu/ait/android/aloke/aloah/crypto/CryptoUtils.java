@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.media.MediaCodec;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,16 +30,23 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Date;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 
@@ -45,6 +54,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.R;
+import hu.ait.android.aloke.aloah.UploadEncryptedKey;
 
 /**
  * Created by Aloke on 4/16/15.
@@ -113,14 +123,16 @@ public class CryptoUtils {
     private static byte[] getSymmetricKey(byte[] symmetricKey, String privateKey) throws IOException {
         // get the first line of the file, this has the string of the key in it;
         byte[] keyBytes = symmetricKey;
-
+        System.out.println("the length is: " + symmetricKey);
         // decrypt keyBytes into the actual symmetric key
         try {
             Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
 
             cipher.init(Cipher.DECRYPT_MODE, getKeyFromString(privateKey));
-            return cipher.doFinal(keyBytes);
-        } catch (NoSuchAlgorithmException |NoSuchProviderException | InvalidKeyException | NoSuchPaddingException |
+            byte[] result = cipher.doFinal(keyBytes);
+            System.out.println("the length of the key after decryption: " + result.length);
+            return result;
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | NoSuchPaddingException |
                 BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
@@ -146,8 +158,8 @@ public class CryptoUtils {
         return privKey;
     }
 
-    public static byte[] createRSAKeys(String text) {
-        byte[] input = text.getBytes();
+    public static byte[] createRSAKeys() {
+        byte[] input = createSymmetricKey().getEncoded();
 
         try {
             Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
@@ -157,6 +169,9 @@ public class CryptoUtils {
             Key pubKey = pair.getPublic();
             Key privKey = pair.getPrivate();
 
+            System.out.println("the pubkey in RSA is: " + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT));
+
+            System.out.println("The new pub key is:\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT).replaceAll("\n", ""));
             cipher.init(Cipher.ENCRYPT_MODE, pubKey, random);
             byte[] encryptedKey = cipher.doFinal(input);
 
@@ -164,8 +179,8 @@ public class CryptoUtils {
             saveEncryptedKeyToSharedPreferences(encryptedKey);
 
             return encryptedKey;
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException
-                | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | NoSuchProviderException | InvalidKeyException |
+                IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             System.out.println("there was an error :(");
             return null;
@@ -179,7 +194,7 @@ public class CryptoUtils {
 
     private static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
-        generator.initialize(2048);
+        generator.initialize(4096);
         return generator.generateKeyPair();
     }
 
@@ -193,6 +208,7 @@ public class CryptoUtils {
     public static String getKey(String spKey) {
         SharedPreferences sp = context.getSharedPreferences("KEY", Context.MODE_PRIVATE);
         String key = sp.getString(spKey, null);
+        System.out.println("the symmetric key in getKey is: " + key);
         return key;
     }
 
@@ -203,4 +219,68 @@ public class CryptoUtils {
         System.out.println(keyAsString);
         saveKeyToSharedPreferences(keyAsString, ENCRYPTED_KEY);
     }
+
+    public static Key createSymmetricKey() {
+        KeyGenerator keyGen = null;
+        try {
+            keyGen = KeyGenerator.getInstance(ALGORITHM);
+            keyGen.init(128); // for example
+            SecretKey secretKey = keyGen.generateKey();
+            return secretKey;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void symmetricKeyHandshake() {
+//        Key symmetricKey = createSymmetricKey();
+
+//        System.out.println("the key in the handshake is: " + getKey(PUBLIC_KEY));
+//        String[] publicKeys = {getKey(PUBLIC_KEY)};
+        String[] publicKeys = {""};
+        for (int i = 0; i < publicKeys.length; i++) {
+            // decode key into a key object
+
+            byte[] encryptedSymmetricKey = createRSAKeys();
+
+//            byte[] encryptedSymmetricKey = null;
+//
+//            try {
+//                SecureRandom random = new SecureRandom();
+//                Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
+//                cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
+//                encryptedSymmetricKey = cipher.doFinal(symmetricKey.getEncoded());
+//
+//                if (i == 0) {
+//                    System.out.println("the first line should be: " + Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT));
+//                }
+//            } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException
+//                    | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+//                e.printStackTrace();
+//            }
+
+            AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
+            asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
+
+            String stringKey = Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT);
+            saveEncryptedKeyToSharedPreferences(encryptedSymmetricKey);
+            System.out.println("the symmetric should be: " +  stringKey);
+            System.out.println("the symmetric key from shared preferences is: \n" + getKey(ENCRYPTED_KEY));
+        }
+    }
+
+    public static Key getPublicKeyFromString(String key) {
+        Key publicKey = null;
+        try {
+            byte[] publicKeyBytes = Base64.decode(key, Base64.DEFAULT);
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            publicKey = fact.generatePublic(spec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+        return publicKey;
+    }
+
 }

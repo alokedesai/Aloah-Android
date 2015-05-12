@@ -76,6 +76,12 @@ public class MainActivity extends ActionBarActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        try {
+            storageAccount = CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
+        } catch (URISyntaxException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
         // launch dialog
 //        launchWelcomeDialog();
 
@@ -91,17 +97,25 @@ public class MainActivity extends ActionBarActivity{
             }
         });
 
-        loadBlobs();
-
-        //UNCOMMENT THIS SECTION WHEN YOU NEED TO RECREATE PUBLIC AND PRIVATE KEYS
-
-//        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys(KEY);
+//        loadBlobs();
+//        String key = Base64.encodeToString(CryptoUtils.createSymmetricKey().getEncoded(), Base64.DEFAULT);
+//        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys("");
 //        String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
 //        System.out.println("the encrypted key is: \n" + encryptedKeyString );
 //        System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
-//
 //        encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
 //        uploadEncryptedKey(encryptedKeyString);
+
+        AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
+        getKeyBlobsAsync.execute();
+
+
+        //UNCOMMENT THIS SECTION WHEN YOU NEED TO RECREATE PUBLIC AND PRIVATE KEYS
+
+
+
+
+
 
         //END SECTION
 
@@ -186,7 +200,7 @@ public class MainActivity extends ActionBarActivity{
         asyncTask.execute();
     }
 
-    private void setBlobAdapter(ArrayList<ImageItem> blobs) {
+    private void setBlobAdapter( ArrayList<ImageItem> blobs) {
 
         adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
@@ -241,7 +255,7 @@ public class MainActivity extends ActionBarActivity{
     }
 
     private void uploadEncryptedKey(String encryptedKey) {
-        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(this);
+        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(this, getString(R.string.user_id) + "");
         asyncTask.execute(encryptedKey);
     }
 
@@ -358,5 +372,18 @@ public class MainActivity extends ActionBarActivity{
     public void deleteFile(CloudBlockBlob blob) {
         AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DeleteFile(this);
         asyncTask.execute(blob);
+    }
+
+    public void onThreadFinish(int numKeyBlobs) {
+        numKeyBlobs = 0;
+        if (numKeyBlobs == 0) {
+            System.out.println("the number of key blobs is " + numKeyBlobs);
+            Toast.makeText(this, numKeyBlobs + "", Toast.LENGTH_SHORT).show();
+            CryptoUtils.symmetricKeyHandshake();
+
+            // do stuff here
+        } else {
+            loadBlobs();
+        }
     }
 }

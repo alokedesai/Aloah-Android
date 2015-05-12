@@ -29,9 +29,11 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     private Context context;
     private String encryptedKey;
+    private String userId;
 
-    public UploadEncryptedKey(Context context) {
+    public UploadEncryptedKey(Context context, String userId) {
         this.context = context;
+        this.userId = userId;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
 
         PrintStream printStream = null;
         try {
-            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), context.getString(R.string.user_id) +".txt");
+            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), userId +".txt");
             printStream = new PrintStream(new FileOutputStream(outputFile));
             printStream.print(encryptedKey);
 
