@@ -6,9 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
@@ -55,6 +57,7 @@ public class MainActivity extends ActionBarActivity{
     public static final int DOWNLOAD_STATE = 0;
     public static final int UPLOAD_STATE = 1;
 
+
     public String inputKey;
     private CloudBlockBlob blobToDownload = null;
     private Uri uriForUpload = null;
@@ -62,6 +65,7 @@ public class MainActivity extends ActionBarActivity{
 
     public static final String KEY = "passwordpassword";
     public static final int FILE_CODE = 101;
+    public static final int PHOTO_CODE = 102;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ImageItem> images = new ArrayList<>();
@@ -146,12 +150,16 @@ public class MainActivity extends ActionBarActivity{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_new) {
-            // start the file picker to choose the file you want to be encrypted on the server
-            startGalleryIntent();
+        if (item.getItemId() == R.id.action_take_photo) {
+            startTakePhotoActivity();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startTakePhotoActivity() {
+        Intent intent = new Intent(this, TakePhotoActivity.class);
+        startActivityForResult(intent, PHOTO_CODE);
     }
 
     private void startGalleryIntent() {
@@ -183,7 +191,16 @@ public class MainActivity extends ActionBarActivity{
             currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
-            uploadFile(uriForUpload);
+            String path = ""+getRealPathFromURI(uriForUpload);
+            System.out.println("URI passed to activity result: "+uriForUpload);
+            uploadFile(path);
+        } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
+
+            currentState = UPLOAD_STATE;
+
+            String filePath  = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
+            System.out.println("PATH passed to activity result: "+filePath);
+            uploadFile(filePath);
         }
     }
 
@@ -245,13 +262,30 @@ public class MainActivity extends ActionBarActivity{
         adapter.setFile(index, file);
     }
 
-    private void uploadFile(Uri uri) {
-        if (uri == null) {
+    private void uploadFile(String path) {
+        if ("".equals(path)) {
             makeToast("Uri null, upload failed");
             return;
         }
-        AsyncTask<Uri, Void, Boolean> asyncTask = new UploadFile(this);
-        asyncTask.execute(uri);
+        AsyncTask<String, Void, Boolean> asyncTask = new UploadFile(this);
+        asyncTask.execute(path);
+    }
+
+    public String getRealPathFromURI(Uri contentUri) {
+
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = getContentResolver().query(contentUri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            System.out.println("URI real path: "+cursor.getString(column_index));
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 
     private void uploadEncryptedKey(String encryptedKey) {
@@ -375,7 +409,7 @@ public class MainActivity extends ActionBarActivity{
     }
 
     public void onThreadFinish(int numKeyBlobs) {
-        numKeyBlobs = 0;
+        //numKeyBlobs = 0;
         if (numKeyBlobs == 0) {
             System.out.println("the number of key blobs is " + numKeyBlobs);
             Toast.makeText(this, numKeyBlobs + "", Toast.LENGTH_SHORT).show();
