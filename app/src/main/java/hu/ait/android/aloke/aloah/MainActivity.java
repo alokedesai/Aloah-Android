@@ -43,7 +43,7 @@ import hu.ait.android.aloke.aloah.fragment.WelcomeDialogFragment;
 import hu.ait.android.aloke.aloah.model.ImageItem;
 
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity {
     public static final String STORAGE_CONNECTION_STRING =
             "DefaultEndpointsProtocol=https;" +
                     "AccountName=aloah;" +
@@ -59,14 +59,13 @@ public class MainActivity extends ActionBarActivity{
     private CloudBlockBlob blobToDownload = null;
     private Uri uriForUpload = null;
     private int currentState;
+    private boolean canRefresh = false;
 
-    public static final String KEY = "passwordpassword";
     public static final int FILE_CODE = 101;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ImageItem> images = new ArrayList<>();
     private ListView listView;
-    private boolean canClickBtnRefresh = false;
     private BlobListAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
@@ -82,9 +81,6 @@ public class MainActivity extends ActionBarActivity{
             e.printStackTrace();
         }
 
-        // launch dialog
-//        launchWelcomeDialog();
-
         CryptoUtils.setContext(this);
 
         listView = (ListView) findViewById(R.id.listView);
@@ -97,27 +93,8 @@ public class MainActivity extends ActionBarActivity{
             }
         });
 
-//        loadBlobs();
-//        String key = Base64.encodeToString(CryptoUtils.createSymmetricKey().getEncoded(), Base64.DEFAULT);
-//        byte[] encryptedKeyBytes = CryptoUtils.createRSAKeys("");
-//        String encryptedKeyString = Base64.encodeToString(encryptedKeyBytes, Base64.DEFAULT);
-//        System.out.println("the encrypted key is: \n" + encryptedKeyString );
-//        System.out.println("\nthe encrypted key without newlines: \n:" + encryptedKeyString.replaceAll("\n", ""));
-//        encryptedKeyString = encryptedKeyString.replaceAll("\n", "");
-//        uploadEncryptedKey(encryptedKeyString);
-
         AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
         getKeyBlobsAsync.execute();
-
-
-        //UNCOMMENT THIS SECTION WHEN YOU NEED TO RECREATE PUBLIC AND PRIVATE KEYS
-
-
-
-
-
-
-        //END SECTION
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -200,32 +177,13 @@ public class MainActivity extends ActionBarActivity{
         asyncTask.execute();
     }
 
-    private void setBlobAdapter( ArrayList<ImageItem> blobs) {
+    private void setBlobAdapter(ArrayList<ImageItem> blobs) {
 
         adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
         mSwipeRefreshLayout.setRefreshing(false);
     }
 
-    public void showKeyEntryDialog() {
-        KeyEntryDialog keyEntryDialog = new KeyEntryDialog();
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        keyEntryDialog.show(fragmentTransaction, KeyEntryDialog.TAG);
-    }
-
-//    @Override
-//    public void onDialogPositiveClick(DialogFragment dialog, String key) {
-//        makeToast("User input key "+ key);
-//        inputKey = key;
-//
-//        if (currentState == DOWNLOAD_STATE) {
-//            downloadFile(blobToDownload);
-//            blobToDownload = null;
-//        } else if (currentState == UPLOAD_STATE) {
-//            uploadFile(uriForUpload);
-//            uriForUpload = null;
-//        }
-//    }
 
 
     public void downloadFile(CloudBlockBlob blob, int index) {
@@ -254,21 +212,12 @@ public class MainActivity extends ActionBarActivity{
         asyncTask.execute(uri);
     }
 
-    private void uploadEncryptedKey(String encryptedKey) {
-        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(this, getString(R.string.user_id) + "");
-        asyncTask.execute(encryptedKey);
-    }
-
     public void makeToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
     public CloudStorageAccount getStorageAccount() {
         return storageAccount;
-    }
-
-    public void setDownloadBlob(CloudBlockBlob blob) {
-        blobToDownload = blob;
     }
 
     private BroadcastReceiver uploadDoneReceiver = new BroadcastReceiver() {
@@ -286,12 +235,14 @@ public class MainActivity extends ActionBarActivity{
     };
 
 
+    //TODO: move this to an eventbus
     class LoadBlobs extends AsyncTask<String, Void, Void> {
 
         @Override
         protected void onPreExecute() {
             // reset images
             images.clear();
+            canRefresh = false;
         }
 
         @Override
@@ -301,7 +252,6 @@ public class MainActivity extends ActionBarActivity{
             } catch (URISyntaxException | InvalidKeyException e) {
                 e.printStackTrace();
             }
-
 
             // get all the images from a container
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
@@ -327,7 +277,7 @@ public class MainActivity extends ActionBarActivity{
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            canClickBtnRefresh = true;
+            canRefresh = true;
             setBlobAdapter(images);
         }
 
@@ -375,15 +325,10 @@ public class MainActivity extends ActionBarActivity{
     }
 
     public void onThreadFinish(int numKeyBlobs) {
-        numKeyBlobs = 0;
+        canRefresh = true;
         if (numKeyBlobs == 0) {
-            System.out.println("the number of key blobs is " + numKeyBlobs);
-            Toast.makeText(this, numKeyBlobs + "", Toast.LENGTH_SHORT).show();
             CryptoUtils.symmetricKeyHandshake();
-
-            // do stuff here
-        } else {
-            loadBlobs();
         }
+        loadBlobs();
     }
 }

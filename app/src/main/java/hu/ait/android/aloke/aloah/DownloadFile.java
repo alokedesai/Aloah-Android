@@ -41,7 +41,6 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         progressDialog.show();
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-
     }
 
     @Override
@@ -56,7 +55,6 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
             blob.downloadToFile(tempFile.getAbsolutePath());
 
             outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
-            System.out.println("the proper path should be: " + outputFile.getAbsolutePath());
             // try to decrypt temp file and put it in outputfile
             try {
                 success = CryptoUtils.decrypt(tempFile, outputFile);

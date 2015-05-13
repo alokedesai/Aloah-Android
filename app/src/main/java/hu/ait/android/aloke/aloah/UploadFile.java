@@ -103,13 +103,4 @@ public class UploadFile extends AsyncTask<Uri, Void, Boolean> {
             }
         }
     }
-
-    private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
-        CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
-        CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(context.getString(R.string.user_id) + ".txt");
-        File tempKeyFile = File.createTempFile("tempkeyfile", ".tmp", context.getCacheDir());
-        System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
-        blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
-        return tempKeyFile;
-    }
 }
