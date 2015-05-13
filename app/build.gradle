@@ -24,4 +24,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.microsoft.azure.android:azure-storage-android:0.5.0@aar'
     compile 'com.melnykov:floatingactionbutton:1.2.0'
+    compile 'com.github.markushi:circlebutton:1.1'
 }

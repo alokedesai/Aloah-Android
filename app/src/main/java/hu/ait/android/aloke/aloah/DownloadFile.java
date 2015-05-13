@@ -1,10 +1,13 @@
 package hu.ait.android.aloke.aloah;
 
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.MediaStore;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
@@ -12,6 +15,7 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 
@@ -49,12 +53,26 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
         try {
 
-            String downloadPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/Download/";
+            File mediaStorageDir = new File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    "Decrypted");
+
+            if (!mediaStorageDir.exists()) {
+                if (!mediaStorageDir.mkdirs()) {
+                    System.out.println("failed to create directory");
+                    return false;
+                }
+            }
 
             File tempFile = File.createTempFile("tempfile", ".tmp", context.getCacheDir());
             blob.downloadToFile(tempFile.getAbsolutePath());
 
-            outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
+            outputFile = new File(mediaStorageDir.getPath() +
+                    File.separator + blob.getName().replace(".encrypted", ""));
+
+            //outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
+            System.out.println("the proper path should be: " + outputFile.getAbsolutePath());
+
             // try to decrypt temp file and put it in outputfile
             try {
                 success = CryptoUtils.decrypt(tempFile, outputFile);
@@ -63,6 +81,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
                 return false;
             } finally {
                 tempFile.delete();
+                attachMetaData(outputFile);
             }
 
 
@@ -90,6 +109,20 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
+
+    }
+
+    private void attachMetaData(File file) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "title");
+        values.put(MediaStore.Images.Media.DESCRIPTION, "desc");
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        values.put(MediaStore.Images.ImageColumns.BUCKET_ID, file.toString().toLowerCase(Locale.US).hashCode());
+        values.put(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME, file.getName().toLowerCase(Locale.US));
+        values.put("_data", file.getAbsolutePath());
+
+        ContentResolver cr = context.getContentResolver();
+        cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
     }
 }
