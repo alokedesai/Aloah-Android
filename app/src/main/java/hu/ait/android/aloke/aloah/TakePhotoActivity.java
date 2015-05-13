@@ -89,7 +89,7 @@ public class TakePhotoActivity extends ActionBarActivity {
                     .format(new Date());
 
             File pictureFile = new File(mediaStorageDir.getPath() +
-                    File.separator + "photo" + timeStamp + ".png");
+                    File.separator + "testing" + timeStamp + ".png");
 
             if (pictureFile == null) {
                 System.out.println("picture file is null");
