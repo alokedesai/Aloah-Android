@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
@@ -30,6 +31,13 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,6 +46,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
+import java.util.List;
 
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
@@ -66,6 +75,7 @@ public class MainActivity extends ActionBarActivity {
 
     public static final int FILE_CODE = 101;
     public static final int PHOTO_CODE = 102;
+    public static final int NEW_USER_CODE = 103;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ImageItem> images = new ArrayList<>();
@@ -73,11 +83,14 @@ public class MainActivity extends ActionBarActivity {
     private BlobListAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
+    private ParseObject currentUser;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         try {
             storageAccount = CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
@@ -86,6 +99,8 @@ public class MainActivity extends ActionBarActivity {
         }
 
         CryptoUtils.setContext(this);
+
+//        intializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
@@ -97,8 +112,13 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
-        getKeyBlobsAsync.execute();
+
+        // we only need to decrypt all the symmetric keys
+        if (currentUser != null && currentUser.getBoolean("owner")) {
+            AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
+            getKeyBlobsAsync.execute();
+        }
+
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -112,6 +132,35 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+    }
+
+    private void intializeParse() {
+        // Enable Local Datastore.
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "MdcgPHF16T9TSgEWIKhkozwm0ZGv0ZSQL85FQZR5", "Q8TTs5ClUELbRrbw9kjNRjiov4WHLUF3AaAvpELg");
+
+        final String deviceId = getDeviceId();
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
+        query.whereEqualTo("deviceId", deviceId);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> scoreList, ParseException e) {
+                if (e == null) {
+                    currentUser = scoreList.get(0);
+                } else {
+                    startNewUserActivity();
+                }
+            }
+        });
+    }
+
+    private void startNewUserActivity() {
+        Intent intent = new Intent(this, NewUserActivity.class);
+        startActivityForResult(intent, NEW_USER_CODE);
+    }
+
+    private String getDeviceId() {
+        return Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
     private void launchWelcomeDialog() {
@@ -168,16 +217,19 @@ public class MainActivity extends ActionBarActivity {
             currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
-            String path = ""+getRealPathFromURI(uriForUpload);
-            System.out.println("URI passed to activity result: "+uriForUpload);
+            String path = "" + getRealPathFromURI(uriForUpload);
+            System.out.println("URI passed to activity result: " + uriForUpload);
             uploadFile(path);
         } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
 
             currentState = UPLOAD_STATE;
 
-            String filePath  = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
-            System.out.println("PATH passed to activity result: "+filePath);
+            String filePath = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
+            System.out.println("PATH passed to activity result: " + filePath);
             uploadFile(filePath);
+        } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
+            String username = data.getExtras().getString(NewUserActivity.NAME);
+            createParseUser(username);
         }
     }
 
@@ -190,8 +242,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void loadBlobs() {
-        AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
-        asyncTask.execute();
+        if (canRefresh) {
+            AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
+            asyncTask.execute();
+        }
     }
 
     private void setBlobAdapter(ArrayList<ImageItem> blobs) {
@@ -200,7 +254,6 @@ public class MainActivity extends ActionBarActivity {
         listView.setAdapter(adapter);
         mSwipeRefreshLayout.setRefreshing(false);
     }
-
 
 
     public void downloadFile(CloudBlockBlob blob, int index) {
@@ -233,11 +286,11 @@ public class MainActivity extends ActionBarActivity {
 
         Cursor cursor = null;
         try {
-            String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = getContentResolver().query(contentUri,  proj, null, null, null);
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = getContentResolver().query(contentUri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
-            System.out.println("URI real path: "+cursor.getString(column_index));
+            System.out.println("URI real path: " + cursor.getString(column_index));
             return cursor.getString(column_index);
         } finally {
             if (cursor != null) {
@@ -365,5 +418,21 @@ public class MainActivity extends ActionBarActivity {
             CryptoUtils.symmetricKeyHandshake();
         }
         loadBlobs();
+    }
+
+    public void createParseUser(String username) {
+        ParseObject user = new ParseObject("User");
+        user.put("username", username);
+        user.put("owner", false);
+        user.put("deviceId", getDeviceId());
+
+        user.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                canRefresh = true;
+                loadBlobs();
+
+            }
+        });
     }
 }
