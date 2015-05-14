@@ -68,7 +68,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
             blob.downloadToFile(tempFile.getAbsolutePath());
 
             outputFile = new File(mediaStorageDir.getPath() +
-                    File.separator + blob.getName().replace(".encrypted", ""));
+                    File.separator + blob.getName());
 
             //outputFile = new File(downloadPath, blob.getName().replace(".encrypted", ""));
             System.out.println("the proper path should be: " + outputFile.getAbsolutePath());

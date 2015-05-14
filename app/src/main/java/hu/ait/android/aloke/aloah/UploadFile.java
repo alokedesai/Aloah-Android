@@ -58,7 +58,7 @@ public class UploadFile extends AsyncTask<String, Void, Boolean> {
 
             // Retrieve reference to a previously created container.
             CloudBlobContainer container = blobClient.getContainerReference(MainActivity.TEST_CONTAINER);
-            CloudBlockBlob blob = container.getBlockBlobReference(inputFile.getName() + ".encrypted");
+            CloudBlockBlob blob = container.getBlockBlobReference(inputFile.getName());
 
             // encrypt the file
             String key = ((MainActivity) context).inputKey;
