@@ -12,12 +12,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +42,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,7 +101,7 @@ public class MainActivity extends ActionBarActivity {
         CryptoUtils.setContext(this);
 
 
-        intializeParse();
+        initializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
@@ -138,7 +136,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    private void intializeParse() {
+    private void initializeParse() {
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "MdcgPHF16T9TSgEWIKhkozwm0ZGv0ZSQL85FQZR5", "Q8TTs5ClUELbRrbw9kjNRjiov4WHLUF3AaAvpELg");
@@ -149,12 +147,15 @@ public class MainActivity extends ActionBarActivity {
         query.whereEqualTo("deviceId", deviceId);
         query.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> scoreList, ParseException e) {
-                if (e == null) {
+                if (e == null && scoreList.size() > 0) {
                     currentUser = scoreList.get(0);
-                    canRefresh = true;
 
                     if (currentUser.getBoolean("owner")) {
                         adminItem.setVisible(true);
+                    }
+
+                    if (currentUser.getBoolean("approved")) {
+                        canRefresh = true;
                     }
 
                     loadBlobs();
@@ -258,10 +259,30 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void loadBlobs() {
+        if (currentUser != null) {
+            refreshCurrentUser();
+        }
+
+
         if (canRefresh) {
             AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
             asyncTask.execute();
         }
+    }
+
+    private void refreshCurrentUser() {
+        currentUser.fetchInBackground(new GetCallback<ParseObject>() {
+            @Override
+            public void done(ParseObject parseObject, ParseException e) {
+                if (e == null) {
+                    currentUser = parseObject;
+                    if (currentUser.getBoolean("approved")) {
+                        canRefresh = true;
+                    }
+                }
+
+            }
+        });
     }
 
     private void setBlobAdapter(ArrayList<ImageItem> blobs) {
@@ -437,10 +458,11 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void createParseUser(String username) {
-        ParseObject user = new ParseObject("User");
+        final ParseObject user = new ParseObject("User");
         user.put("username", username);
         user.put("owner", false);
         user.put("deviceId", getDeviceId());
+        user.put("approved", false);
 
         user.saveInBackground(new SaveCallback() {
             @Override
@@ -448,6 +470,11 @@ public class MainActivity extends ActionBarActivity {
                 canRefresh = true;
                 loadBlobs();
 
+                currentUser = user;
+
+                // create RSA keys
+                AsyncTask<Void, Void, KeyPair> asyncTask = new CreateRSAKeys(MainActivity.this, currentUser);
+                asyncTask.execute();
             }
         });
     }

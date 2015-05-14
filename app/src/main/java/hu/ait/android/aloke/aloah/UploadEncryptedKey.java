@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Base64;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.StorageException;
@@ -57,14 +58,14 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
 
             // derive the encrypted Key
             byte[] encryptedKey = CryptoUtils.encryptSymmetricKeyWithPublicKey(publicKey);
+            String encryptedKeyAsString = Base64.encodeToString(encryptedKey, Base64.DEFAULT).replaceAll("\n", "");
 
             File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), userId +".txt");
-            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-            fileOutputStream.write(encryptedKey);
-            fileOutputStream.close();
+            printStream = new PrintStream(new FileOutputStream(outputFile));
+            printStream.print(encryptedKeyAsString);
 
             // create client to connect to the azure sever
-            CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
+            CloudBlobClient blobClient = ((AdminActivity) context).getStorageAccount().createCloudBlobClient();
             CloudBlobContainer container = blobClient.getContainerReference(MainActivity.KEY_CONTAINER);
             CloudBlockBlob blob = container.getBlockBlobReference(outputFile.getName());
             blob.upload(new java.io.FileInputStream(outputFile), outputFile.length());

@@ -149,7 +149,7 @@ public class CryptoUtils {
         return privKey;
     }
 
-    private static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
         generator.initialize(4096);
         return generator.generateKeyPair();
@@ -177,7 +177,7 @@ public class CryptoUtils {
     /* SHARED PREFERENCES METHODS
         ------------------------------------------------------------------------------------------------
      */
-    private static void saveRSAKeysToSharedPreferences(Key pubKey, Key privKey) {
+    public static void saveRSAKeysToSharedPreferences(Key pubKey, Key privKey) {
         saveKeyToSharedPreferences(Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT), PUBLIC_KEY);
         saveKeyToSharedPreferences(Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT), PRIVATE_KEY);
     }

@@ -1,5 +1,6 @@
 package hu.ait.android.aloke.aloah;
 
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -7,11 +8,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 
+import com.microsoft.azure.storage.CloudStorageAccount;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +25,7 @@ import hu.ait.android.aloke.aloah.adapter.UnapprovedUsersListAdapter;
 
 public class AdminActivity extends ActionBarActivity {
     List<ParseObject> usersToApprove;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,5 +68,17 @@ public class AdminActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    //TODO: think of a cleaner way of doing this
+    public CloudStorageAccount getStorageAccount() {
+        CloudStorageAccount storageAccount = null;
+        try {
+            storageAccount = CloudStorageAccount.parse(MainActivity.STORAGE_CONNECTION_STRING);
+        } catch(URISyntaxException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+        return storageAccount;
     }
 }
