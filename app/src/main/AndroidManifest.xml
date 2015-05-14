@@ -32,6 +32,10 @@
             android:name=".NewUserActivity"
             android:label="@string/title_activity_new_user" >
         </activity>
+        <activity
+            android:name=".AdminActivity"
+            android:label="@string/title_activity_admin" >
+        </activity>
     </application>
 
 </manifest>

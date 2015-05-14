@@ -276,4 +276,37 @@ public class CryptoUtils {
         return publicKey;
     }
 
+    public static byte[] encryptSymmetricKeyWithPublicKey(String pubKey) {
+        Key publicKey = getPublicKeyFromString(pubKey);
+        byte[] symmetricKey = null;
+        try {
+            symmetricKey = getSymmetricKey();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] encryptedSymmetricKey = null;
+
+        SecureRandom random = new SecureRandom();
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
+            encryptedSymmetricKey = cipher.doFinal(symmetricKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+        return encryptedSymmetricKey;
+    }
+
 }

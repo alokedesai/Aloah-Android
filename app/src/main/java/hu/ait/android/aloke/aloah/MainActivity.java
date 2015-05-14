@@ -85,6 +85,8 @@ public class MainActivity extends ActionBarActivity {
 
     private ParseObject currentUser;
 
+    private MenuItem adminItem;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +102,8 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
-//        intializeParse();
+
+        intializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
@@ -113,11 +116,12 @@ public class MainActivity extends ActionBarActivity {
         });
 
 
-        // we only need to decrypt all the symmetric keys
-        if (currentUser != null && currentUser.getBoolean("owner")) {
-            AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
-            getKeyBlobsAsync.execute();
-        }
+//        // we only need to decrypt all the symmetric keys
+//        if (currentUser != null && currentUser.getBoolean("owner")) {
+//            adminItem.setVisible(true);
+////            AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
+////            getKeyBlobsAsync.execute();
+//        }
 
 
         // set up the fab
@@ -147,6 +151,13 @@ public class MainActivity extends ActionBarActivity {
             public void done(List<ParseObject> scoreList, ParseException e) {
                 if (e == null) {
                     currentUser = scoreList.get(0);
+                    canRefresh = true;
+
+                    if (currentUser.getBoolean("owner")) {
+                        adminItem.setVisible(true);
+                    }
+
+                    loadBlobs();
                 } else {
                     startNewUserActivity();
                 }
@@ -171,6 +182,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        adminItem = menu.findItem(R.id.action_admin);
         return true;
     }
 
@@ -178,6 +191,9 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_take_photo) {
             startTakePhotoActivity();
+        } else if (item.getItemId() == R.id.action_admin) {
+            Intent intent = new Intent(this, AdminActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);

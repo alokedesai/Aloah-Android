@@ -1,5 +1,6 @@
 package hu.ait.android.aloke.aloah;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -28,23 +29,39 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
  */
 public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     private Context context;
-    private String encryptedKey;
+    private String publicKey;
     private String userId;
+    private ProgressDialog progressDialog;
 
     public UploadEncryptedKey(Context context, String userId) {
         this.context = context;
         this.userId = userId;
+
+        progressDialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog.setMessage("Authorizing user");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
     }
 
     @Override
     protected Boolean doInBackground(String... params) {
-        encryptedKey = params[0];
+        publicKey = params[0];
 
         PrintStream printStream = null;
         try {
+
+            // derive the encrypted Key
+            byte[] encryptedKey = CryptoUtils.encryptSymmetricKeyWithPublicKey(publicKey);
+
             File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), userId +".txt");
-            printStream = new PrintStream(new FileOutputStream(outputFile));
-            printStream.print(encryptedKey);
+            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+            fileOutputStream.write(encryptedKey);
+            fileOutputStream.close();
 
             // create client to connect to the azure sever
             CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
@@ -68,7 +85,9 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
-        ((MainActivity) context).saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, encryptedKey);
+        if (progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
     }
 
 
