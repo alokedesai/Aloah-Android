@@ -3,7 +3,13 @@ package hu.ait.android.aloke.aloah.crypto;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.MediaCodec;
+import android.os.AsyncTask;
 import android.util.Base64;
+
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +27,8 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -31,6 +39,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import hu.ait.android.aloke.aloah.R;
+import hu.ait.android.aloke.aloah.task.UploadEncryptedKey;
 
 /**
  * Created by Aloke on 4/16/15.
@@ -225,35 +234,51 @@ public class CryptoUtils {
      * Uploads each file to azure blob
      */
     public static void symmetricKeyHandshake() {
-        Key symmetricKey = createSymmetricKey();
+        final Key symmetricKey = createSymmetricKey();
 
-        String[] publicKeys = context.getResources().getStringArray(R.array.public_keys);
-        for (int i = 0; i < publicKeys.length; i++) {
 
-            // decode key into a key object
-            Key publicKey = getPublicKeyFromString(publicKeys[i]);
+        final ArrayList<String> publicKeys = new ArrayList<>();
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("User");
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> users, ParseException ex) {
+                if (ex == null) {
+                    for (ParseObject user: users) {
+                        publicKeys.add(user.getString("publickey"));
 
-            byte[] encryptedSymmetricKey = null;
+                        // decode key into a key object
+                        Key publicKey = getPublicKeyFromString(user.getString("publickey"));
 
-            try {
-                SecureRandom random = new SecureRandom();
-                Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
-                cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
-                encryptedSymmetricKey = cipher.doFinal(symmetricKey.getEncoded());
+                        byte[] encryptedSymmetricKey = null;
 
-            } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException
-                    | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-                e.printStackTrace();
+                        try {
+                            SecureRandom random = new SecureRandom();
+                            Cipher cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
+                            cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
+                            encryptedSymmetricKey = cipher.doFinal(symmetricKey.getEncoded());
+
+                        } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException
+                                | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+                            e.printStackTrace();
+                        }
+
+                        uploadEncryptedSymmetricKey(user, encryptedSymmetricKey);
+                        saveEncryptedKeyToSharedPreferences(encryptedSymmetricKey);
+
+
+                    }
+                }
             }
+        });
 
-            uploadEncryptedSymmetricKey(i, encryptedSymmetricKey);
-            saveEncryptedKeyToSharedPreferences(encryptedSymmetricKey);
-        }
+
+                //String[] publicKeys = context.getResources().getStringArray(R.array.public_keys);
+
     }
 
-    private static void uploadEncryptedSymmetricKey(int i, byte[] encryptedSymmetricKey) {
-//        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
-//        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
+    private static void uploadEncryptedSymmetricKey(ParseObject user, byte[] encryptedSymmetricKey) {
+        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user);
+        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
     }
 
     /**

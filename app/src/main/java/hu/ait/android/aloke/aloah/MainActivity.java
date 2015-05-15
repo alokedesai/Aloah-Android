@@ -83,6 +83,7 @@ public class MainActivity extends ActionBarActivity {
     public static final int FILE_CODE = 101;
     public static final int PHOTO_CODE = 102;
     public static final int NEW_USER_CODE = 103;
+    public static final int VIDEO_CODE = 104;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ImageItem> images = new ArrayList<>();
@@ -112,7 +113,10 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
-        saveKeysToSharedPreferences();
+       // saveKeysToSharedPreferences();
+
+
+        //CryptoUtils.symmetricKeyHandshake();
 
         initializeParse();
 
@@ -235,6 +239,11 @@ public class MainActivity extends ActionBarActivity {
         } else if (item.getItemId() == R.id.action_admin) {
             Intent intent = new Intent(this, AdminActivity.class);
             startActivity(intent);
+        } else if (item.getItemId() == R.id.action_take_video) {
+            Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+            if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takeVideoIntent, VIDEO_CODE);
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -270,15 +279,20 @@ public class MainActivity extends ActionBarActivity {
             String path = "" + getRealPathFromURI(uriForUpload);
             System.out.println("URI passed to activity result: " + uriForUpload);
             uploadFile(path);
-        } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
 
+        } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
             String filePath = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
             System.out.println("PATH passed to activity result: " + filePath);
-            //uploadFile(filePath);
+            uploadFile(filePath);
+
         } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
             String username = data.getExtras().getString(NewUserActivity.NAME);
             createParseUser(username);
             ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
+
+        } else if (requestCode == VIDEO_CODE && resultCode == RESULT_OK) {
+            Uri videoUri = data.getData();
+            uploadFile(getRealPathFromURI(videoUri));
         }
     }
 
