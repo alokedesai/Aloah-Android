@@ -112,6 +112,8 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
+        saveKeysToSharedPreferences();
+
         initializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
@@ -245,7 +247,7 @@ public class MainActivity extends ActionBarActivity {
 
     private void startGalleryIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, null);
-        intent.setType("image/*");
+        intent.setType("image/*,video/*");
         startActivityForResult(intent, FILE_CODE);
     }
 
@@ -272,7 +274,7 @@ public class MainActivity extends ActionBarActivity {
 
             String filePath = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
             System.out.println("PATH passed to activity result: " + filePath);
-            uploadFile(filePath);
+            //uploadFile(filePath);
         } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
             String username = data.getExtras().getString(NewUserActivity.NAME);
             createParseUser(username);
@@ -437,12 +439,22 @@ public class MainActivity extends ActionBarActivity {
         editor.apply();
     }
 
+    public void saveKeysToSharedPreferences() {
+        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        String pub = getString(R.string.pub_key);
+        String priv = getString(R.string.priv_key);
+        editor.putString(CryptoUtils.PUBLIC_KEY, pub);
+        editor.putString(CryptoUtils.PRIVATE_KEY, priv);
+        editor.apply();
+    }
+
     public void openImageFromImageItem(ImageItem imageItem) {
         File file = imageItem.getFile();
         Uri path = Uri.fromFile(file);
         Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
         imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        imageOpenIntent.setDataAndType(path, "image/*");
+        imageOpenIntent.setDataAndType(path, "image/*,video/*");
         startActivity(imageOpenIntent);
     }
 

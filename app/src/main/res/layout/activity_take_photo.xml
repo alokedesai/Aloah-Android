@@ -5,10 +5,10 @@
     android:layout_height="match_parent"
     tools:context="hu.ait.android.aloke.aloah.TakePhotoActivity">
 
-    <hu.ait.android.aloke.aloah.CameraTextureView
-        android:id="@+id/camTextureView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <!--<hu.ait.android.aloke.aloah.CameraTextureView-->
+        <!--android:id="@+id/camTextureView"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" />-->
 
     <!--<Button-->
         <!--android:id="@+id/btnPhoto"-->

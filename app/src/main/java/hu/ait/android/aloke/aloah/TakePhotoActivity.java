@@ -31,6 +31,7 @@ import at.markushi.ui.CircleButton;
 public class TakePhotoActivity extends ActionBarActivity {
 
     public static final String PHOTO_PATH = "PHOTO_PATH";
+    public static final int REQUEST_VIDEO_CAPTURE = 1;
     private CameraTextureView camTextureView;
     private boolean recording = false;
 
@@ -39,13 +40,13 @@ public class TakePhotoActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_take_photo);
 
-        camTextureView = (CameraTextureView) findViewById(R.id.camTextureView);
+        //camTextureView = (CameraTextureView) findViewById(R.id.camTextureView);
 
         CircleButton btnPhoto = (CircleButton) findViewById(R.id.btnPhoto);
         btnPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                camTextureView.takePhoto(pictureCallback);
+               // camTextureView.takePhoto(pictureCallback);
             }
         });
 
@@ -53,20 +54,42 @@ public class TakePhotoActivity extends ActionBarActivity {
         btnVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!recording) {
-                    camTextureView.startVideoCapture();
 
-                    recording = true;
-                    Toast.makeText(TakePhotoActivity.this, "Now recording", Toast.LENGTH_SHORT).show();
-                } else {
-                    camTextureView.endVideoCapture();
-
-                    recording = false;
-                    Toast.makeText(TakePhotoActivity.this, "Stopped recording", Toast.LENGTH_SHORT).show();
-                }
+                dispatchTakeVideoIntent();
+//                if (!recording) {
+//                    camTextureView.startVideoCapture();
+//
+//                    recording = true;
+//                    Toast.makeText(TakePhotoActivity.this, "Now recording", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    camTextureView.endVideoCapture();
+//
+//                    recording = false;
+//                    Toast.makeText(TakePhotoActivity.this, "Stopped recording", Toast.LENGTH_SHORT).show();
+//                }
                 //camTextureView.takePhoto(pictureCallback);
+
+
+
+
             }
         });
+    }
+
+    private void dispatchTakeVideoIntent() {
+        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            Uri videoUri = data.getData();
+            Toast.makeText(this, "Finished recording",Toast.LENGTH_LONG);
+            //mVideoView.setVideoURI(videoUri);
+        }
     }
 
     private Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
