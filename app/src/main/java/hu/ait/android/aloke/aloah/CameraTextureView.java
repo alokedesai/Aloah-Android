@@ -26,25 +26,25 @@ public class CameraTextureView extends TextureView implements
         TextureView.SurfaceTextureListener {
 
     private Camera camera;
-    private MediaRecorder mediaRecorder;
-    private SurfaceTexture surface;
+//    private MediaRecorder mediaRecorder;
+//    private SurfaceTexture surface;
 
     private Context context;
 
     public CameraTextureView(Context context) {
         super(context);
-        this.context = context;
+       // this.context = context;
         setSurfaceTextureListener(this);
     }
 
     public CameraTextureView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.context = context;
+        //this.context = context;
         setSurfaceTextureListener(this);
     }
 
     @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture s, int width,
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width,
                                           int height) {
         camera = Camera.open();
 
@@ -56,7 +56,7 @@ public class CameraTextureView extends TextureView implements
 
         camera.setParameters(parameters);
 
-        surface = s;
+       // surface = s;
 
         try {
             camera.setPreviewTexture(surface);
@@ -100,38 +100,38 @@ public class CameraTextureView extends TextureView implements
         new TakePictureTask(pictureCallback).execute();
     }
 
-    public void endVideoCapture() {
-        // stop recording and release camera
-        mediaRecorder.stop();  // stop the recording
-        releaseMediaRecorder(); // release the MediaRecorder object
-        camera.lock();         // take camera access back from MediaRecorder
+//    public void endVideoCapture() {
+//        // stop recording and release camera
+//        mediaRecorder.stop();  // stop the recording
+//        releaseMediaRecorder(); // release the MediaRecorder object
+//        camera.lock();         // take camera access back from MediaRecorder
+//
+//    }
 
-    }
+//    public void startVideoCapture() {
+//        if (prepareVideoRecorder()) {
+//            // Camera is available and unlocked, MediaRecorder is prepared,
+//            // now you can start recording
+//            mediaRecorder.start();
+//
+//            // inform the user that recording has started
+//            //setCaptureButtonText("Stop");
+//
+//        } else {
+//            // prepare didn't work, release the camera
+//            releaseMediaRecorder();
+//            // inform user
+//        }
+//    }
 
-    public void startVideoCapture() {
-        if (prepareVideoRecorder()) {
-            // Camera is available and unlocked, MediaRecorder is prepared,
-            // now you can start recording
-            mediaRecorder.start();
-
-            // inform the user that recording has started
-            //setCaptureButtonText("Stop");
-
-        } else {
-            // prepare didn't work, release the camera
-            releaseMediaRecorder();
-            // inform user
-        }
-    }
-
-    private void releaseMediaRecorder(){
-        if (mediaRecorder != null) {
-            mediaRecorder.reset();   // clear recorder configuration
-            mediaRecorder.release(); // release the recorder object
-            mediaRecorder = null;
-            camera.lock();           // lock camera for later use
-        }
-    }
+//    private void releaseMediaRecorder(){
+//        if (mediaRecorder != null) {
+//            mediaRecorder.reset();   // clear recorder configuration
+//            mediaRecorder.release(); // release the recorder object
+//            mediaRecorder = null;
+//            camera.lock();           // lock camera for later use
+//        }
+//    }
 
     private void releaseCamera(){
         if (camera != null){
@@ -140,42 +140,42 @@ public class CameraTextureView extends TextureView implements
         }
     }
 
-    private boolean prepareVideoRecorder(){
-
-        //camera = getCameraInstance();
-        mediaRecorder = new MediaRecorder();
-
-        // Step 1: Unlock and set camera to MediaRecorder
-        camera.unlock();
-        mediaRecorder.setCamera(camera);
-
-        // Step 2: Set sources
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
-        // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
-        mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-
-        // Step 4: Set output file
-        mediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
-
-        // Step 5: Set the preview output
-        //mediaRecorder.setPreviewDisplay();
-
-        // Step 6: Prepare configured MediaRecorder
-        try {
-            mediaRecorder.prepare();
-        } catch (IllegalStateException e) {
-            Log.d("Tag_", "IllegalStateException preparing MediaRecorder: " + e.getMessage());
-            releaseMediaRecorder();
-            return false;
-        } catch (IOException e) {
-            Log.d("Tag_", "IOException preparing MediaRecorder: " + e.getMessage());
-            releaseMediaRecorder();
-            return false;
-        }
-        return true;
-    }
+//    private boolean prepareVideoRecorder(){
+//
+//        //camera = getCameraInstance();
+//        mediaRecorder = new MediaRecorder();
+//
+//        // Step 1: Unlock and set camera to MediaRecorder
+//        camera.unlock();
+//        mediaRecorder.setCamera(camera);
+//
+//        // Step 2: Set sources
+//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+//        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+//
+//        // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
+//        mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+//
+//        // Step 4: Set output file
+//        mediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
+//
+//        // Step 5: Set the preview output
+//        //mediaRecorder.setPreviewDisplay();
+//
+//        // Step 6: Prepare configured MediaRecorder
+//        try {
+//            mediaRecorder.prepare();
+//        } catch (IllegalStateException e) {
+//            Log.d("Tag_", "IllegalStateException preparing MediaRecorder: " + e.getMessage());
+//            releaseMediaRecorder();
+//            return false;
+//        } catch (IOException e) {
+//            Log.d("Tag_", "IOException preparing MediaRecorder: " + e.getMessage());
+//            releaseMediaRecorder();
+//            return false;
+//        }
+//        return true;
+//    }
 
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
@@ -244,6 +244,7 @@ public class CameraTextureView extends TextureView implements
         protected void onPostExecute(Void result) {
             // This returns the preview back to the live camera feed
 //            camera.startPreview();
+//            releaseCamera();
         }
     }
 }

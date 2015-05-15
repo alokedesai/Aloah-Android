@@ -31,6 +31,7 @@ import at.markushi.ui.CircleButton;
 public class TakePhotoActivity extends ActionBarActivity {
 
     public static final String PHOTO_PATH = "PHOTO_PATH";
+    public static final int REQUEST_VIDEO_CAPTURE = 1;
     private CameraTextureView camTextureView;
     private boolean recording = false;
 
@@ -45,28 +46,21 @@ public class TakePhotoActivity extends ActionBarActivity {
         btnPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                camTextureView.takePhoto(pictureCallback);
+               camTextureView.takePhoto(pictureCallback);
             }
         });
 
-        CircleButton btnVideo = (CircleButton) findViewById(R.id.btnVideo);
-        btnVideo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!recording) {
-                    camTextureView.startVideoCapture();
 
-                    recording = true;
-                    Toast.makeText(TakePhotoActivity.this, "Now recording", Toast.LENGTH_SHORT).show();
-                } else {
-                    camTextureView.endVideoCapture();
+    }
 
-                    recording = false;
-                    Toast.makeText(TakePhotoActivity.this, "Stopped recording", Toast.LENGTH_SHORT).show();
-                }
-                //camTextureView.takePhoto(pictureCallback);
-            }
-        });
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            Uri videoUri = data.getData();
+            System.out.println(videoUri.getPath());
+        }
     }
 
     private Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {

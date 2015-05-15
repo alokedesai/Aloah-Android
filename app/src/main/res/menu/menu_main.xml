@@ -5,13 +5,17 @@
     <item
         android:id="@+id/action_admin"
         android:title="Admin"
-        android:visible="false"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_take_video"
+        android:icon="@drawable/videocamera128"
+        android:title="Video"
         app:showAsAction="always"/>
 
     <item
         android:id="@+id/action_take_photo"
         android:icon="@drawable/camera128"
-        android:orderInCategory="101"
         android:title="Photo"
         app:showAsAction="always"/>
 </menu>
