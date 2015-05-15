@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="22sp"
-        android:text="Users To Approve:"/>
+        android:text="@string/users_to_approve_text"/>
 
     <ListView
         android:layout_width="match_parent"

@@ -157,9 +157,6 @@ public class MainActivity extends ActionBarActivity {
                 startGalleryIntent();
             }
         });
-
-        //CryptoUtils.createRSAKeys();
-
     }
 
     private void initializeParse() {

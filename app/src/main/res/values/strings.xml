@@ -8,5 +8,12 @@
     <string name="title_activity_take_photo">TakePhotoActivity</string>
     <string name="title_activity_new_user">NewUserActivity</string>
     <string name="title_activity_admin">AdminActivity</string>
+    <string name="no_files_on_server_text">No files on the server</string>
+    <string name="refresh_btn_text">Refresh</string>
+    <string name="unapproved_text">You have yet to be approved by the group owner</string>
+    <string name="users_to_approve_text">Users To Approve:</string>
+    <string name="create_account_text">Create Your Account</string>
+    <string name="name_edit_text">Name</string>
+    <string name="submit_btn_new_user">Submit</string>
 
 </resources>

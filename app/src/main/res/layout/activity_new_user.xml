@@ -10,7 +10,7 @@
                 tools:context="hu.ait.android.aloke.aloah.NewUserActivity">
 
     <TextView
-        android:text="Create Your Account"
+        android:text="@string/create_account_text"
         android:layout_width="wrap_content"
         android:textSize="20dp"
         android:textColor="@color/primaryDark"
@@ -19,13 +19,13 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Name"
+        android:hint="@string/name_edit_text"
         android:id="@+id/etName"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="@string/submit_btn_new_user"
         android:id="@+id/btnSubmit"/>
 
 </LinearLayout>
