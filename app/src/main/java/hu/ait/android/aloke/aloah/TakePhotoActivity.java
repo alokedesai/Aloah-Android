@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 
@@ -31,6 +32,7 @@ public class TakePhotoActivity extends ActionBarActivity {
 
     public static final String PHOTO_PATH = "PHOTO_PATH";
     private CameraTextureView camTextureView;
+    private boolean recording = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,23 +49,24 @@ public class TakePhotoActivity extends ActionBarActivity {
             }
         });
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btnPhoto);
-//
-//        // add listener to create new shopping items using fav
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                camTextureView.takePhoto(pictureCallback);
-//            }
-//        });
+        CircleButton btnVideo = (CircleButton) findViewById(R.id.btnVideo);
+        btnVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!recording) {
+                    camTextureView.startVideoCapture();
 
-//        Button btnTakePicture = (Button) findViewById(R.id.btnPhoto);
-//        btnTakePicture.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                camTextureView.takePhoto(pictureCallback);
-//            }
-//        });
+                    recording = true;
+                    Toast.makeText(TakePhotoActivity.this, "Now recording", Toast.LENGTH_SHORT).show();
+                } else {
+                    camTextureView.endVideoCapture();
+
+                    recording = false;
+                    Toast.makeText(TakePhotoActivity.this, "Stopped recording", Toast.LENGTH_SHORT).show();
+                }
+                //camTextureView.takePhoto(pictureCallback);
+            }
+        });
     }
 
     private Camera.PictureCallback pictureCallback = new Camera.PictureCallback() {
@@ -85,11 +88,8 @@ public class TakePhotoActivity extends ActionBarActivity {
                 }
             }
 
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
-                    .format(new Date());
-
             File pictureFile = new File(mediaStorageDir.getPath() +
-                    File.separator + "testing" + timeStamp + ".png");
+                    File.separator + "photo" + System.currentTimeMillis() + ".png");
 
             if (pictureFile == null) {
                 System.out.println("picture file is null");

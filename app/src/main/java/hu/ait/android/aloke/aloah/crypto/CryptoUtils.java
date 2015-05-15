@@ -38,8 +38,8 @@ import hu.ait.android.aloke.aloah.UploadEncryptedKey;
  * Created by Aloke on 4/16/15.
  */
 public class CryptoUtils {
-    private static final String PRIVATE_KEY = "PRIVATE_KEY";
-    private static final String PUBLIC_KEY = "PUBLIC_KEY";
+    public static final String PRIVATE_KEY = "PRIVATE_KEY";
+    public static final String PUBLIC_KEY = "PUBLIC_KEY";
     public static final String ENCRYPTED_KEY = "ENCRYPTED_KEY";
 
     private static final String ALGORITHM = "AES";
@@ -165,6 +165,7 @@ public class CryptoUtils {
             Key privKey = pair.getPrivate();
 
             System.out.println("The new pub key is:\n" + Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT).replaceAll("\n", ""));
+            System.out.println("The new priv key is:\n" + Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT).replaceAll("\n", ""));
 
             saveRSAKeysToSharedPreferences(pubKey, privKey);
         }

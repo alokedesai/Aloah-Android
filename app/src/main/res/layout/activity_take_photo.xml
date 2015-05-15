@@ -33,6 +33,14 @@
             app:cb_color="#90e6e6e6"
             app:cb_pressedRingWidth="5dip" />
 
+        <at.markushi.ui.CircleButton
+            android:id="@+id/btnVideo"
+            android:layout_width="90dip"
+            android:layout_height="90dip"
+            android:layout_gravity="bottom|right"
+            app:cb_color="#90e6e6e6"
+            app:cb_pressedRingWidth="5dip" />
+
     </FrameLayout>
 
     <!--fab:fab_colorNormal="@color/accent"-->
