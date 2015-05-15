@@ -18,7 +18,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
@@ -85,6 +88,11 @@ public class MainActivity extends ActionBarActivity {
 
     private MenuItem adminItem;
 
+    private TextView tvEmpty;
+
+    private TextView tvUnapproved;
+    private Button btnRefresh;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,12 +112,32 @@ public class MainActivity extends ActionBarActivity {
         initializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
-        listView.setEmptyView(findViewById(R.id.tvEmpty));
+        tvEmpty = (TextView) findViewById(R.id.tvEmpty);
+        listView.setEmptyView(tvEmpty);
+
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 loadBlobs();
+            }
+        });
+
+        btnRefresh = (Button) findViewById(R.id.btnRefreshApproved);
+        tvUnapproved = (TextView) findViewById(R.id.tvUnapproved);
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // refresh the current user. If the current user is now approved, load blobs. Otherwise
+                // flash a toast saying still not approved
+                refreshCurrentUser();
+                if (currentUser.getBoolean("approved")) {
+                    hideUnapprovedText();
+                    canRefresh = true;
+                    loadBlobs();
+                } else {
+                    makeToast("Still not approved!");
+                }
             }
         });
 
@@ -156,6 +184,8 @@ public class MainActivity extends ActionBarActivity {
 
                     if (currentUser.getBoolean("approved")) {
                         canRefresh = true;
+                    } else {
+                        showUnapprovedText();
                     }
 
                     loadBlobs();
@@ -164,6 +194,18 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
         });
+    }
+
+    private void showUnapprovedText() {
+        tvEmpty.setVisibility(View.GONE);
+        tvUnapproved.setVisibility(View.VISIBLE);
+        btnRefresh.setVisibility(View.VISIBLE);
+    }
+
+    private void hideUnapprovedText() {
+        tvEmpty.setVisibility(View.VISIBLE);
+        tvUnapproved.setVisibility(View.INVISIBLE);
+        btnRefresh.setVisibility(View.INVISIBLE);
     }
 
     private void startNewUserActivity() {
@@ -247,6 +289,7 @@ public class MainActivity extends ActionBarActivity {
         } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
             String username = data.getExtras().getString(NewUserActivity.NAME);
             createParseUser(username);
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
         }
     }
 
@@ -276,9 +319,9 @@ public class MainActivity extends ActionBarActivity {
             public void done(ParseObject parseObject, ParseException e) {
                 if (e == null) {
                     currentUser = parseObject;
-                    if (currentUser.getBoolean("approved")) {
-                        canRefresh = true;
-                    }
+//                    if (currentUser.getBoolean("approved")) {
+//                        canRefresh = true;
+//                    }
                 }
 
             }
