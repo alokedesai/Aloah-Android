@@ -11,6 +11,7 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import de.greenrobot.event.EventBus;
+import hu.ait.android.aloke.aloah.R;
 import hu.ait.android.aloke.aloah.event.DeleteFileEvent;
 
 /**
@@ -27,7 +28,7 @@ public class DeleteFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
     @Override
     protected void onPreExecute() {
-        progressDialog.setMessage("Deleting File");
+        progressDialog.setMessage(context.getString(R.string.deleting_file_progress_dialog_text));
         progressDialog.show();
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);

@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.AdminActivity;
 import hu.ait.android.aloke.aloah.MainActivity;
+import hu.ait.android.aloke.aloah.R;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
 
@@ -49,7 +50,7 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected void onPreExecute() {
-        progressDialog.setMessage("Authorizing user");
+        progressDialog.setMessage(context.getString(R.string.authorizing_user_progress_dialog_text));
         progressDialog.show();
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);

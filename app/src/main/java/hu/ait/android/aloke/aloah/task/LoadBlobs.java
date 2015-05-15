@@ -46,7 +46,7 @@ public class LoadBlobs extends AsyncTask<String, Void, ArrayList<ImageItem>> {
 
         try {
             // Retrieve reference to a previously created container.
-            CloudBlobContainer container = blobClient.getContainerReference("testcontainer");
+            CloudBlobContainer container = blobClient.getContainerReference(MainActivity.TEST_CONTAINER);
 
             for (ListBlobItem b : container.listBlobs()) {
                 images.add(new ImageItem(b));

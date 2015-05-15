@@ -38,7 +38,7 @@ public class DownloadEncryptedKey extends AsyncTask<String, Void, String> {
         try {
             storageAccount = CloudStorageAccount.parse(MainActivity.STORAGE_CONNECTION_STRING);
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-            CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
+            CloudBlobContainer keyContainer = blobClient.getContainerReference(MainActivity.KEY_CONTAINER);
             CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(userId + ".txt");
             File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", cacheDir);
 

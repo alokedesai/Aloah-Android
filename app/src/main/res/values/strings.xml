@@ -15,5 +15,19 @@
     <string name="create_account_text">Create Your Account</string>
     <string name="name_edit_text">Name</string>
     <string name="submit_btn_new_user">Submit</string>
+    <string name="deleting_file_progress_dialog_text">Deleting File</string>
+    <string name="authorizing_user_progress_dialog_text">Authorizing user</string>
+    <string name="upload_file_progress_dialog_text">Uploading File</string>
+    <string name="not_approved_toast_text">Still not approved!</string>
+    <string name="file_uploaded_succesfully_toast_text">File uploaded successfully!</string>
+    <string name="downloading_error_toast_text">There was an error while downloading!</string>
+    <string name="downloading_successful_toast_text">File successfully downloaded!</string>
+    <string name="file_upload_unsuccessful_toast_text">There was an error while uploading!</string>
+    <string name="rsa_key_successful_toast_text">RSA keys successfully created!</string>
+    <string name="file_deleted_successful_toast_text">File successfully deleted!</string>
+    <string name="file_deleted_unsuccessful_toast_text">There was an error deleting</string>
+    <string name="key_uploaded_succesful_toast_text">Key has been successfully uploaded!</string>
+    <string name="download_file_null_blob_toast_text">Null blob, download failed.</string>
+    <string name="null_uri_upload_failed_toast_text">Uri null, upload failed</string>
 
 </resources>

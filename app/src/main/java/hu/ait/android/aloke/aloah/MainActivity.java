@@ -77,7 +77,6 @@ public class MainActivity extends ActionBarActivity {
     public static final String TEST_CONTAINER = "testcontainer";
 
     public String inputKey;
-    private CloudBlockBlob blobToDownload = null;
     private Uri uriForUpload = null;
     private boolean canRefresh = false;
 
@@ -141,7 +140,7 @@ public class MainActivity extends ActionBarActivity {
 
                     downloadEncryptedKey();
                 } else {
-                    makeToast("Still not approved!");
+                    makeToast(getString(R.string.not_approved_toast_text));
                 }
             }
         });
@@ -285,43 +284,43 @@ public class MainActivity extends ActionBarActivity {
     //------------------------------------------------
     public void onEvent(UploadFileEvent event) {
         if (event.result) {
-            makeToast("File uploaded successfully!");
+            makeToast(getString(R.string.file_uploaded_succesfully_toast_text));
             loadBlobs();
         } else {
-            makeToast("There was an error while downloading!");
+            makeToast(getString(R.string.file_upload_unsuccessful_toast_text));
         }
     }
 
     public void onEvent(DownloadFileEvent event) {
         if (event.success) {
-            makeToast("File successfully downloaded!");
+            makeToast(getString(R.string.downloading_successful_toast_text));
 
             setIsDownloaded(event.index);
             setFile(event.index, event.outputFile);
 
             loadBlobs();
         } else {
-            makeToast("There was an error while downloading");
+            makeToast(getString(R.string.downloading_error_toast_text));
         }
     }
 
     public void onEvent(CreateRSAKeysEvent event) {
-        makeToast("RSA keys successfully created!");
+        makeToast(getString(R.string.rsa_key_successful_toast_text));
         CryptoUtils.saveRSAKeysToSharedPreferences(event.pair.getPublic(), event.pair.getPrivate());
     }
 
     public void onEvent(DeleteFileEvent event) {
         if (event.success) {
-            makeToast("File successfully deleted!");
+            makeToast(getString(R.string.file_deleted_successful_toast_text));
             loadBlobs();
         } else {
-            makeToast("There was an error deleting");
+            makeToast(getString(R.string.file_deleted_unsuccessful_toast_text));
         }
     }
 
     public void onEvent(UploadEncryptedKeyEvent event) {
         if (event.success) {
-            makeToast("Key has been successfully uploaded!");
+            makeToast(getString(R.string.key_uploaded_succesful_toast_text));
         }
     }
 
@@ -382,7 +381,7 @@ public class MainActivity extends ActionBarActivity {
 
     public void downloadFile(CloudBlockBlob blob, int index) {
         if (blob == null) {
-            makeToast("Null blob, download failed.");
+            makeToast(getString(R.string.download_file_null_blob_toast_text));
             return;
         }
         AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DownloadFile(this, index);
@@ -399,7 +398,7 @@ public class MainActivity extends ActionBarActivity {
 
     private void uploadFile(String path) {
         if ("".equals(path)) {
-            makeToast("Uri null, upload failed");
+            makeToast(getString(R.string.null_uri_upload_failed_toast_text));
             return;
         }
         AsyncTask<String, Void, Boolean> asyncTask = new UploadFile(this);
