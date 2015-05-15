@@ -13,6 +13,8 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.parse.ParseException;
+import com.parse.ParseObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,12 +33,12 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     private Context context;
     private String publicKey;
-    private String userId;
+    private ParseObject user;
     private ProgressDialog progressDialog;
 
-    public UploadEncryptedKey(Context context, String userId) {
+    public UploadEncryptedKey(Context context, ParseObject user) {
         this.context = context;
-        this.userId = userId;
+        this.user = user;
 
         progressDialog = new ProgressDialog(context);
     }
@@ -54,13 +56,15 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
         publicKey = params[0];
 
         PrintStream printStream = null;
+
+        boolean success = false;
         try {
 
             // derive the encrypted Key
             byte[] encryptedKey = CryptoUtils.encryptSymmetricKeyWithPublicKey(publicKey);
             String encryptedKeyAsString = Base64.encodeToString(encryptedKey, Base64.DEFAULT).replaceAll("\n", "");
 
-            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), userId +".txt");
+            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), user.getObjectId() +".txt");
             printStream = new PrintStream(new FileOutputStream(outputFile));
             printStream.print(encryptedKeyAsString);
 
@@ -70,25 +74,32 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
             CloudBlockBlob blob = container.getBlockBlobReference(outputFile.getName());
             blob.upload(new java.io.FileInputStream(outputFile), outputFile.length());
 
-            //saveEncryptedKeyToSharedPreferences(blobClient);
+            //set user to be approved
+            user.put("approved", true);
+            user.save();
 
-            //
-        } catch (IOException | StorageException | URISyntaxException e) {
+            success = true;
+        } catch (IOException | StorageException | URISyntaxException | ParseException e) {
             e.printStackTrace();
         } finally {
             if (printStream != null) {
                 printStream.close();
             }
         }
-        return null;
+        return success;
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean) {
-        Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
-        if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
+    protected void onPostExecute(Boolean success) {
+        if (success) {
+            Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+
+
         }
+
     }
 
 

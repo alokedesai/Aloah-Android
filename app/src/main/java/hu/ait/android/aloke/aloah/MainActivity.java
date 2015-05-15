@@ -419,7 +419,7 @@ public class MainActivity extends ActionBarActivity {
 
         private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
             CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
-            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(getString(R.string.user_id) + ".txt");
+            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(currentUser.getObjectId() + ".txt");
             File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", getCacheDir());
             System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
             blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
@@ -467,9 +467,6 @@ public class MainActivity extends ActionBarActivity {
         user.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                canRefresh = true;
-                loadBlobs();
-
                 currentUser = user;
 
                 // create RSA keys

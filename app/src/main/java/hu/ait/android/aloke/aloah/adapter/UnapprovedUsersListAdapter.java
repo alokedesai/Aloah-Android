@@ -66,7 +66,7 @@ public class UnapprovedUsersListAdapter extends BaseAdapter {
             holder.btnApprove.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user.getObjectId());
+                    AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user);
                     asyncTask.execute(user.getString("publicKey"));
                 }
             });

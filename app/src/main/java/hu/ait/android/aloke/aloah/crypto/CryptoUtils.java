@@ -253,8 +253,8 @@ public class CryptoUtils {
     }
 
     private static void uploadEncryptedSymmetricKey(int i, byte[] encryptedSymmetricKey) {
-        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
-        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
+//        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
+//        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
     }
 
     /**
