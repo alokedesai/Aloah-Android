@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,11 +10,13 @@ import android.widget.Toast;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
+import de.greenrobot.event.EventBus;
+import hu.ait.android.aloke.aloah.event.DeleteFileEvent;
+
 /**
  * Created by Aloke on 5/10/15.
  */
 public class DeleteFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
-    public static final String FILTER_RESULT = "DELETE_FILE_FILTER_RESULT";
     private Context context;
     private ProgressDialog progressDialog;
 
@@ -46,13 +48,6 @@ public class DeleteFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean success) {
         progressDialog.dismiss();
-        if (success) {
-            Intent intent = new Intent(FILTER_RESULT);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-            Toast.makeText(context, "The file was successfully deleted!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(context, "The file was unable to be deleted.", Toast.LENGTH_SHORT).show();
-        }
-
+        EventBus.getDefault().post(new DeleteFileEvent(success));
     }
 }

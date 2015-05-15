@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.task;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,7 +12,9 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
+import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.event.CreateRSAKeysEvent;
 
 /**
  * Created by Aloke on 5/14/15.
@@ -50,10 +52,9 @@ public class CreateRSAKeys extends AsyncTask<Void, Void, KeyPair> {
 
     @Override
     protected void onPostExecute(KeyPair keyPair) {
-        // saved to shared preferences
         if (keyPair != null) {
-            CryptoUtils.saveRSAKeysToSharedPreferences(keyPair.getPublic(), keyPair.getPrivate());
+            EventBus.getDefault().post(
+                    new CreateRSAKeysEvent(keyPair));
         }
-        ((MainActivity) context).makeToast("RSA Keys successfully created!");
     }
 }

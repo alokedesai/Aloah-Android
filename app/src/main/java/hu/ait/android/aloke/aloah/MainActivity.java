@@ -4,22 +4,20 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,10 +47,24 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.event.CreateRSAKeysEvent;
+import hu.ait.android.aloke.aloah.event.DeleteFileEvent;
+import hu.ait.android.aloke.aloah.event.DownloadEncryptedKeyEvent;
+import hu.ait.android.aloke.aloah.event.DownloadFileEvent;
+import hu.ait.android.aloke.aloah.event.LoadBlobsEvent;
+import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
+import hu.ait.android.aloke.aloah.event.UploadFileEvent;
 import hu.ait.android.aloke.aloah.fragment.WelcomeDialogFragment;
 import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.task.CreateRSAKeys;
+import hu.ait.android.aloke.aloah.task.DeleteFile;
+import hu.ait.android.aloke.aloah.task.DownloadEncryptedKey;
+import hu.ait.android.aloke.aloah.task.DownloadFile;
+import hu.ait.android.aloke.aloah.task.LoadBlobs;
+import hu.ait.android.aloke.aloah.task.UploadFile;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -64,14 +76,9 @@ public class MainActivity extends ActionBarActivity {
     public static final String KEY_CONTAINER = "keycontainer";
     public static final String TEST_CONTAINER = "testcontainer";
 
-    public static final int DOWNLOAD_STATE = 0;
-    public static final int UPLOAD_STATE = 1;
-
-
     public String inputKey;
     private CloudBlockBlob blobToDownload = null;
     private Uri uriForUpload = null;
-    private int currentState;
     private boolean canRefresh = false;
 
     public static final int FILE_CODE = 101;
@@ -87,9 +94,7 @@ public class MainActivity extends ActionBarActivity {
     private ParseObject currentUser;
 
     private MenuItem adminItem;
-
     private TextView tvEmpty;
-
     private TextView tvUnapproved;
     private Button btnRefresh;
 
@@ -133,21 +138,13 @@ public class MainActivity extends ActionBarActivity {
                 if (currentUser.getBoolean("approved")) {
                     hideUnapprovedText();
                     canRefresh = true;
-                    loadBlobs();
+
+                    downloadEncryptedKey();
                 } else {
                     makeToast("Still not approved!");
                 }
             }
         });
-
-
-//        // we only need to decrypt all the symmetric keys
-//        if (currentUser != null && currentUser.getBoolean("owner")) {
-//            adminItem.setVisible(true);
-////            AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
-////            getKeyBlobsAsync.execute();
-//        }
-
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -185,11 +182,13 @@ public class MainActivity extends ActionBarActivity {
 
                     if (currentUser.getBoolean("approved")) {
                         canRefresh = true;
+
+                        // download the encrypted key and save it to shared preferences, on result
+                        // load blobs
+                        downloadEncryptedKey();
                     } else {
                         showUnapprovedText();
                     }
-
-                    loadBlobs();
                 } else {
                     startNewUserActivity();
                 }
@@ -257,32 +256,23 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                uploadDoneReceiver, new IntentFilter(UploadFile.FILTER_RESULT));
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                deleteDoneReceiver, new IntentFilter(DeleteFile.FILTER_RESULT));
+        EventBus.getDefault().register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadDoneReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(deleteDoneReceiver);
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
-
-            currentState = UPLOAD_STATE;
-
             uriForUpload = data.getData();
             String path = "" + getRealPathFromURI(uriForUpload);
             System.out.println("URI passed to activity result: " + uriForUpload);
             uploadFile(path);
         } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
-
-            currentState = UPLOAD_STATE;
 
             String filePath = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
             System.out.println("PATH passed to activity result: " + filePath);
@@ -294,24 +284,81 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public void setState(int state) {
-        currentState = state;
+    // onEvent methods for async tasks
+    //------------------------------------------------
+    public void onEvent(UploadFileEvent event) {
+        if (event.result) {
+            makeToast("File uploaded successfully!");
+            loadBlobs();
+        } else {
+            makeToast("There was an error while downloading!");
+        }
     }
 
-    public int getState() {
-        return currentState;
+    public void onEvent(DownloadFileEvent event) {
+        if (event.success) {
+            makeToast("File successfully downloaded!");
+
+            setIsDownloaded(event.index);
+            setFile(event.index, event.outputFile);
+
+            loadBlobs();
+        } else {
+            makeToast("There was an error while downloading");
+        }
     }
+
+    public void onEvent(CreateRSAKeysEvent event) {
+        makeToast("RSA keys successfully created!");
+        CryptoUtils.saveRSAKeysToSharedPreferences(event.pair.getPublic(), event.pair.getPrivate());
+    }
+
+    public void onEvent(DeleteFileEvent event) {
+        if (event.success) {
+            makeToast("File successfully deleted!");
+            loadBlobs();
+        } else {
+            makeToast("There was an error deleting");
+        }
+    }
+
+    public void onEvent(UploadEncryptedKeyEvent event) {
+        if (event.success) {
+            makeToast("Key has been successfully uploaded!");
+        }
+    }
+
+    public void onEvent(LoadBlobsEvent event) {
+        canRefresh = true;
+        images = event.images;
+        setBlobAdapter(images);
+    }
+
+    public void onEvent(DownloadEncryptedKeyEvent event) {
+        String encryptedKey = event.encryptedKey;
+        saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, encryptedKey);
+        loadBlobs();
+    }
+    // End onEvent methods
+    //------------------------------------------------
 
     private void loadBlobs() {
         if (currentUser != null) {
             refreshCurrentUser();
         }
 
-
         if (canRefresh) {
-            AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
+            canRefresh = false;
+            images.clear();
+
+            AsyncTask<String, Void, ArrayList<ImageItem>> asyncTask = new LoadBlobs(storageAccount);
             asyncTask.execute();
         }
+    }
+
+    private void downloadEncryptedKey() {
+        AsyncTask<String, Void, String> asyncTask = new DownloadEncryptedKey(storageAccount, getCacheDir());
+        asyncTask.execute(currentUser.getObjectId());
     }
 
     private void refreshCurrentUser() {
@@ -387,89 +434,6 @@ public class MainActivity extends ActionBarActivity {
         return storageAccount;
     }
 
-    private BroadcastReceiver uploadDoneReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            loadBlobs();
-        }
-    };
-
-    private BroadcastReceiver deleteDoneReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            loadBlobs();
-        }
-    };
-
-
-    //TODO: move this to an eventbus
-    class LoadBlobs extends AsyncTask<String, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            // reset images
-            images.clear();
-            canRefresh = false;
-        }
-
-        @Override
-        protected Void doInBackground(String... params) {
-            try {
-                storageAccount = CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
-            } catch (URISyntaxException | InvalidKeyException e) {
-                e.printStackTrace();
-            }
-
-            // get all the images from a container
-            CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
-
-            try {
-                // Retrieve reference to a previously created container.
-                CloudBlobContainer container = blobClient.getContainerReference("testcontainer");
-
-                for (ListBlobItem b : container.listBlobs()) {
-                    images.add(new ImageItem(b));
-                }
-
-                saveEncryptedKeyToSharedPreferences(blobClient);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            canRefresh = true;
-            setBlobAdapter(images);
-        }
-
-        private void saveEncryptedKeyToSharedPreferences(CloudBlobClient blobClient) throws StorageException, IOException, URISyntaxException {
-            File tempFile = downloadTempKeyFile(blobClient);
-
-            BufferedReader brTest = new BufferedReader(new FileReader(tempFile));
-            String firstLine = brTest.readLine();
-            System.out.println("First line from load images: " + firstLine);
-
-            saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, firstLine);
-
-            tempFile.delete();
-        }
-
-        private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
-            CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
-            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(currentUser.getObjectId() + ".txt");
-            File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", getCacheDir());
-            System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
-            blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
-            return tempKeyFile;
-        }
-    }
-
     public void saveToSharedPreferences(String key, String value) {
         SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
@@ -489,15 +453,6 @@ public class MainActivity extends ActionBarActivity {
     public void deleteFile(CloudBlockBlob blob) {
         AsyncTask<CloudBlockBlob, Void, Boolean> asyncTask = new DeleteFile(this);
         asyncTask.execute(blob);
-    }
-
-    public void onThreadFinish(int numKeyBlobs) {
-
-        canRefresh = true;
-        if (numKeyBlobs == 0) {
-            CryptoUtils.symmetricKeyHandshake();
-        }
-        loadBlobs();
     }
 
     public void createParseUser(String username) {

@@ -1,6 +1,7 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
+import android.app.usage.UsageEvents;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,14 +18,15 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Locale;
 
+import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.event.DownloadFileEvent;
 
 /**
  * Created by Aloke on 4/16/15.
  */
 public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
-    private static final String FILTER_DOWNLOAD_FILE = "FILTER_DOWNLOAD_FILE";
     private Context context;
     private int index;
     private ProgressDialog progressDialog;
@@ -97,13 +99,9 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean success) {
         if (success) {
-            ((MainActivity) context).makeToast("File successfully downloaded!");
-            ((MainActivity) context).setIsDownloaded(index);
-            ((MainActivity) context).setFile(index, outputFile);
-
-
+            EventBus.getDefault().post(new DownloadFileEvent(index, success, outputFile));
         } else {
-            ((MainActivity) context).makeToast("There was an error while downloading!");
+            EventBus.getDefault().post(new DownloadFileEvent(success));
         }
 
         if (progressDialog.isShowing()) {

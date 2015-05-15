@@ -3,7 +3,6 @@ package hu.ait.android.aloke.aloah.crypto;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.MediaCodec;
-import android.os.AsyncTask;
 import android.util.Base64;
 
 import java.io.File;
@@ -32,7 +31,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import hu.ait.android.aloke.aloah.R;
-import hu.ait.android.aloke.aloah.UploadEncryptedKey;
 
 /**
  * Created by Aloke on 4/16/15.

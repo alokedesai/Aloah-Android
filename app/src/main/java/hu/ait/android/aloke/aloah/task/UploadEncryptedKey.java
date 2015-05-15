@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -25,7 +25,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 
+import de.greenrobot.event.EventBus;
+import hu.ait.android.aloke.aloah.AdminActivity;
+import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
 
 /**
  * Created by Aloke on 5/8/15.
@@ -91,41 +95,6 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean success) {
-        if (success) {
-            Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
-            if (progressDialog.isShowing()) {
-                progressDialog.dismiss();
-            }
-
-
-        }
-
+        EventBus.getDefault().post(new UploadEncryptedKeyEvent(success));
     }
-
-
-//    private void saveEncryptedKeyToSharedPreferences(CloudBlobClient blobClient) throws StorageException, IOException, URISyntaxException {
-//        File tempFile = downloadTempKeyFile(blobClient);
-//
-//        BufferedReader brTest = new BufferedReader(new FileReader(tempFile));
-//        String firstLine = brTest.readLine();
-//        System.out.println("First line from load images: " + firstLine);
-//
-//        ((MainActivity) context).saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, firstLine);
-//
-//        tempFile.delete();
-//    }
-//
-//    private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
-//        CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
-//        CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(context.getString(R.string.user_id) + ".txt");
-//        File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", context.getCacheDir());
-//        System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
-//        blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
-//        return tempKeyFile;
-//    }
-
-//    private String getUserId() {
-//        SharedPreferences sp = context.getSharedPreferences("KEY", Context.MODE_PRIVATE);
-//        return sp.getString("USER_ID", "-1");
-//    }
 }

@@ -14,7 +14,7 @@ import com.parse.ParseObject;
 import java.util.List;
 
 import hu.ait.android.aloke.aloah.R;
-import hu.ait.android.aloke.aloah.UploadEncryptedKey;
+import hu.ait.android.aloke.aloah.task.UploadEncryptedKey;
 
 /**
  * Created by Aloke on 5/14/15.

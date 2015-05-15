@@ -1,4 +1,4 @@
-package hu.ait.android.aloke.aloah;
+package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -18,7 +18,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import de.greenrobot.event.EventBus;
+import hu.ait.android.aloke.aloah.MainActivity;
+import hu.ait.android.aloke.aloah.R;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
+import hu.ait.android.aloke.aloah.event.UploadFileEvent;
 
 /**
  * Created by Aloke on 4/16/15.
@@ -26,8 +30,6 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 public class UploadFile extends AsyncTask<String, Void, Boolean> {
     private Context context;
     private ProgressDialog progressDialog;
-
-    public static final String FILTER_RESULT = "UPLOAD_FILE_FILTER_RESULT";
 
     public UploadFile(Context context) {
         this.context = context;
@@ -79,14 +81,7 @@ public class UploadFile extends AsyncTask<String, Void, Boolean> {
             progressDialog.dismiss();
         }
 
-        if (result) {
-            ((MainActivity) context).makeToast("File uploaded successfully!");
-            Intent intent = new Intent(FILTER_RESULT);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-
-        } else {
-            ((MainActivity) context).makeToast("There was an error uploading!");
-        }
+        EventBus.getDefault().post(new UploadFileEvent(result));
     }
 
 //    public String getRealPathFromURI(Context context, Uri contentUri) {
