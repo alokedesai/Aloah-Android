@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.parse.FindCallback;
@@ -20,7 +21,9 @@ import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.adapter.UnapprovedUsersListAdapter;
+import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
 
 
 public class AdminActivity extends ActionBarActivity {
@@ -80,5 +83,24 @@ public class AdminActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         return storageAccount;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
+    }
+
+    public void onEvent(UploadEncryptedKeyEvent event) {
+        if (event.success) {
+            Toast.makeText(this, getString(R.string.key_uploaded_succesful_toast_text),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 }

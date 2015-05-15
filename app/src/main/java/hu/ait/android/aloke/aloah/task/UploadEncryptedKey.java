@@ -96,6 +96,9 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean success) {
+        if (success) {
+            progressDialog.dismiss();
+        }
         EventBus.getDefault().post(new UploadEncryptedKeyEvent(success));
     }
 }
