@@ -87,6 +87,8 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
+        storePrivateKeyInSharedPrefs();
+
         listView = (ListView) findViewById(R.id.listView);
         listView.setEmptyView(findViewById(R.id.tvEmpty));
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
@@ -111,6 +113,8 @@ public class MainActivity extends ActionBarActivity {
                 startGalleryIntent();
             }
         });
+
+        //CryptoUtils.createRSAKeys();
 
     }
 
@@ -199,6 +203,13 @@ public class MainActivity extends ActionBarActivity {
         adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
         mSwipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void storePrivateKeyInSharedPrefs() {
+        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(CryptoUtils.PRIVATE_KEY, getString(R.string.priv_key));
+        editor.commit();
     }
 
 
