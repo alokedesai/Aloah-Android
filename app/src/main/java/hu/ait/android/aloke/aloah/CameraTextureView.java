@@ -243,7 +243,7 @@ public class CameraTextureView extends TextureView implements
         @Override
         protected void onPostExecute(Void result) {
             // This returns the preview back to the live camera feed
-            //camera.startPreview();
+//            camera.startPreview();
         }
     }
 }

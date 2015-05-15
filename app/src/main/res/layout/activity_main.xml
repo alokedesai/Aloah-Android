@@ -14,10 +14,28 @@
         android:id="@+id/tvEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+
         android:textSize="20sp"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:text="No files on the server"/>
+
+    <Button
+        android:id="@+id/btnRefreshApproved"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Refresh"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tvUnapproved"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="You have yet to be approved by the group owner"
+        android:textSize="18sp"/>
 
     <FrameLayout
         android:id="@+id/frameLayout"

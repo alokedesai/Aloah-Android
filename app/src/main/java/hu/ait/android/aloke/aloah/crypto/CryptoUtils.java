@@ -149,7 +149,7 @@ public class CryptoUtils {
         return privKey;
     }
 
-    private static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
+    public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
         generator.initialize(4096);
         return generator.generateKeyPair();
@@ -178,7 +178,7 @@ public class CryptoUtils {
     /* SHARED PREFERENCES METHODS
         ------------------------------------------------------------------------------------------------
      */
-    private static void saveRSAKeysToSharedPreferences(Key pubKey, Key privKey) {
+    public static void saveRSAKeysToSharedPreferences(Key pubKey, Key privKey) {
         saveKeyToSharedPreferences(Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT), PUBLIC_KEY);
         saveKeyToSharedPreferences(Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT), PRIVATE_KEY);
     }
@@ -254,8 +254,8 @@ public class CryptoUtils {
     }
 
     private static void uploadEncryptedSymmetricKey(int i, byte[] encryptedSymmetricKey) {
-        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
-        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
+//        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, i + 1 + "");
+//        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
     }
 
     /**
@@ -275,6 +275,39 @@ public class CryptoUtils {
             e.printStackTrace();
         }
         return publicKey;
+    }
+
+    public static byte[] encryptSymmetricKeyWithPublicKey(String pubKey) {
+        Key publicKey = getPublicKeyFromString(pubKey);
+        byte[] symmetricKey = null;
+        try {
+            symmetricKey = getSymmetricKey();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] encryptedSymmetricKey = null;
+
+        SecureRandom random = new SecureRandom();
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding", "BC");
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, random);
+            encryptedSymmetricKey = cipher.doFinal(symmetricKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+        return encryptedSymmetricKey;
     }
 
 }

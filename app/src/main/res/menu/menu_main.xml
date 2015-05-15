@@ -2,13 +2,16 @@
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".MainActivity">
-    <!--<item android:id="@+id/action_new"-->
-          <!--android:title="Upload"-->
-          <!--android:orderInCategory="100"-->
-          <!--app:showAsAction="always"/>-->
-      <item android:id="@+id/action_take_photo"
-          android:title="Photo"
-          android:icon="@drawable/camera128"
-          android:orderInCategory="101"
-          app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_admin"
+        android:title="Admin"
+        android:visible="false"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_take_photo"
+        android:icon="@drawable/camera128"
+        android:orderInCategory="101"
+        android:title="Photo"
+        app:showAsAction="always"/>
 </menu>

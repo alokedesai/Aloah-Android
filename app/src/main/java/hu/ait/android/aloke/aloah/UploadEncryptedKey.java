@@ -1,16 +1,20 @@
 package hu.ait.android.aloke.aloah;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Base64;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.parse.ParseException;
+import com.parse.ParseObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,47 +32,74 @@ import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
  */
 public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     private Context context;
-    private String encryptedKey;
-    private String userId;
+    private String publicKey;
+    private ParseObject user;
+    private ProgressDialog progressDialog;
 
-    public UploadEncryptedKey(Context context, String userId) {
+    public UploadEncryptedKey(Context context, ParseObject user) {
         this.context = context;
-        this.userId = userId;
+        this.user = user;
+
+        progressDialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog.setMessage("Authorizing user");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
     }
 
     @Override
     protected Boolean doInBackground(String... params) {
-        encryptedKey = params[0];
+        publicKey = params[0];
 
         PrintStream printStream = null;
+
+        boolean success = false;
         try {
-            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), userId +".txt");
+
+            // derive the encrypted Key
+            byte[] encryptedKey = CryptoUtils.encryptSymmetricKeyWithPublicKey(publicKey);
+            String encryptedKeyAsString = Base64.encodeToString(encryptedKey, Base64.DEFAULT).replaceAll("\n", "");
+
+            File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), user.getObjectId() +".txt");
             printStream = new PrintStream(new FileOutputStream(outputFile));
-            printStream.print(encryptedKey);
+            printStream.print(encryptedKeyAsString);
 
             // create client to connect to the azure sever
-            CloudBlobClient blobClient = ((MainActivity) context).getStorageAccount().createCloudBlobClient();
+            CloudBlobClient blobClient = ((AdminActivity) context).getStorageAccount().createCloudBlobClient();
             CloudBlobContainer container = blobClient.getContainerReference(MainActivity.KEY_CONTAINER);
             CloudBlockBlob blob = container.getBlockBlobReference(outputFile.getName());
             blob.upload(new java.io.FileInputStream(outputFile), outputFile.length());
 
-            //saveEncryptedKeyToSharedPreferences(blobClient);
+            //set user to be approved
+            user.put("approved", true);
+            user.save();
 
-            //
-        } catch (IOException | StorageException | URISyntaxException e) {
+            success = true;
+        } catch (IOException | StorageException | URISyntaxException | ParseException e) {
             e.printStackTrace();
         } finally {
             if (printStream != null) {
                 printStream.close();
             }
         }
-        return null;
+        return success;
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean) {
-        Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
-        ((MainActivity) context).saveToSharedPreferences(CryptoUtils.ENCRYPTED_KEY, encryptedKey);
+    protected void onPostExecute(Boolean success) {
+        if (success) {
+            Toast.makeText(context, "Key has been uploaded", Toast.LENGTH_LONG).show();
+            if (progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+
+
+        }
+
     }
 
 

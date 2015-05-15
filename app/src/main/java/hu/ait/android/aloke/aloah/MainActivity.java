@@ -11,16 +11,17 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentTransaction;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
@@ -30,6 +31,13 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,7 +45,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.List;
 
 import hu.ait.android.aloke.aloah.adapter.BlobListAdapter;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
@@ -66,6 +76,7 @@ public class MainActivity extends ActionBarActivity {
 
     public static final int FILE_CODE = 101;
     public static final int PHOTO_CODE = 102;
+    public static final int NEW_USER_CODE = 103;
 
     private CloudStorageAccount storageAccount;
     private ArrayList<ImageItem> images = new ArrayList<>();
@@ -73,11 +84,21 @@ public class MainActivity extends ActionBarActivity {
     private BlobListAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
+    private ParseObject currentUser;
+
+    private MenuItem adminItem;
+
+    private TextView tvEmpty;
+
+    private TextView tvUnapproved;
+    private Button btnRefresh;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         try {
             storageAccount = CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
@@ -87,10 +108,12 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
-        storePrivateKeyInSharedPrefs();
+        initializeParse();
 
         listView = (ListView) findViewById(R.id.listView);
-        listView.setEmptyView(findViewById(R.id.tvEmpty));
+        tvEmpty = (TextView) findViewById(R.id.tvEmpty);
+        listView.setEmptyView(tvEmpty);
+
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -99,8 +122,32 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
-        getKeyBlobsAsync.execute();
+        btnRefresh = (Button) findViewById(R.id.btnRefreshApproved);
+        tvUnapproved = (TextView) findViewById(R.id.tvUnapproved);
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // refresh the current user. If the current user is now approved, load blobs. Otherwise
+                // flash a toast saying still not approved
+                refreshCurrentUser();
+                if (currentUser.getBoolean("approved")) {
+                    hideUnapprovedText();
+                    canRefresh = true;
+                    loadBlobs();
+                } else {
+                    makeToast("Still not approved!");
+                }
+            }
+        });
+
+
+//        // we only need to decrypt all the symmetric keys
+//        if (currentUser != null && currentUser.getBoolean("owner")) {
+//            adminItem.setVisible(true);
+////            AsyncTask<Void, Void, Integer> getKeyBlobsAsync = new GetNumKeyBlobs(this);
+////            getKeyBlobsAsync.execute();
+//        }
+
 
         // set up the fab
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -118,6 +165,59 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    private void initializeParse() {
+        // Enable Local Datastore.
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "MdcgPHF16T9TSgEWIKhkozwm0ZGv0ZSQL85FQZR5", "Q8TTs5ClUELbRrbw9kjNRjiov4WHLUF3AaAvpELg");
+
+        final String deviceId = getDeviceId();
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
+        query.whereEqualTo("deviceId", deviceId);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> scoreList, ParseException e) {
+                if (e == null && scoreList.size() > 0) {
+                    currentUser = scoreList.get(0);
+
+                    if (currentUser.getBoolean("owner")) {
+                        adminItem.setVisible(true);
+                    }
+
+                    if (currentUser.getBoolean("approved")) {
+                        canRefresh = true;
+                    } else {
+                        showUnapprovedText();
+                    }
+
+                    loadBlobs();
+                } else {
+                    startNewUserActivity();
+                }
+            }
+        });
+    }
+
+    private void showUnapprovedText() {
+        tvEmpty.setVisibility(View.GONE);
+        tvUnapproved.setVisibility(View.VISIBLE);
+        btnRefresh.setVisibility(View.VISIBLE);
+    }
+
+    private void hideUnapprovedText() {
+        tvEmpty.setVisibility(View.VISIBLE);
+        tvUnapproved.setVisibility(View.INVISIBLE);
+        btnRefresh.setVisibility(View.INVISIBLE);
+    }
+
+    private void startNewUserActivity() {
+        Intent intent = new Intent(this, NewUserActivity.class);
+        startActivityForResult(intent, NEW_USER_CODE);
+    }
+
+    private String getDeviceId() {
+        return Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
+
     private void launchWelcomeDialog() {
         WelcomeDialogFragment dialog = new WelcomeDialogFragment();
         dialog.show(getSupportFragmentManager(), WelcomeDialogFragment.TAG);
@@ -126,6 +226,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        adminItem = menu.findItem(R.id.action_admin);
         return true;
     }
 
@@ -133,6 +235,9 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_take_photo) {
             startTakePhotoActivity();
+        } else if (item.getItemId() == R.id.action_admin) {
+            Intent intent = new Intent(this, AdminActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -172,16 +277,20 @@ public class MainActivity extends ActionBarActivity {
             currentState = UPLOAD_STATE;
 
             uriForUpload = data.getData();
-            String path = ""+getRealPathFromURI(uriForUpload);
-            System.out.println("URI passed to activity result: "+uriForUpload);
+            String path = "" + getRealPathFromURI(uriForUpload);
+            System.out.println("URI passed to activity result: " + uriForUpload);
             uploadFile(path);
         } else if (requestCode == PHOTO_CODE && resultCode == Activity.RESULT_OK) {
 
             currentState = UPLOAD_STATE;
 
-            String filePath  = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
-            System.out.println("PATH passed to activity result: "+filePath);
+            String filePath = data.getExtras().getString(TakePhotoActivity.PHOTO_PATH);
+            System.out.println("PATH passed to activity result: " + filePath);
             uploadFile(filePath);
+        } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
+            String username = data.getExtras().getString(NewUserActivity.NAME);
+            createParseUser(username);
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
         }
     }
 
@@ -194,8 +303,30 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void loadBlobs() {
-        AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
-        asyncTask.execute();
+        if (currentUser != null) {
+            refreshCurrentUser();
+        }
+
+
+        if (canRefresh) {
+            AsyncTask<String, Void, Void> asyncTask = new LoadBlobs();
+            asyncTask.execute();
+        }
+    }
+
+    private void refreshCurrentUser() {
+        currentUser.fetchInBackground(new GetCallback<ParseObject>() {
+            @Override
+            public void done(ParseObject parseObject, ParseException e) {
+                if (e == null) {
+                    currentUser = parseObject;
+//                    if (currentUser.getBoolean("approved")) {
+//                        canRefresh = true;
+//                    }
+                }
+
+            }
+        });
     }
 
     private void setBlobAdapter(ArrayList<ImageItem> blobs) {
@@ -204,15 +335,6 @@ public class MainActivity extends ActionBarActivity {
         listView.setAdapter(adapter);
         mSwipeRefreshLayout.setRefreshing(false);
     }
-
-    private void storePrivateKeyInSharedPrefs() {
-        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString(CryptoUtils.PRIVATE_KEY, getString(R.string.priv_key));
-        editor.commit();
-    }
-
-
 
     public void downloadFile(CloudBlockBlob blob, int index) {
         if (blob == null) {
@@ -244,11 +366,11 @@ public class MainActivity extends ActionBarActivity {
 
         Cursor cursor = null;
         try {
-            String[] proj = { MediaStore.Images.Media.DATA };
-            cursor = getContentResolver().query(contentUri,  proj, null, null, null);
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = getContentResolver().query(contentUri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
-            System.out.println("URI real path: "+cursor.getString(column_index));
+            System.out.println("URI real path: " + cursor.getString(column_index));
             return cursor.getString(column_index);
         } finally {
             if (cursor != null) {
@@ -340,7 +462,7 @@ public class MainActivity extends ActionBarActivity {
 
         private File downloadTempKeyFile(CloudBlobClient blobClient) throws URISyntaxException, StorageException, IOException {
             CloudBlobContainer keyContainer = blobClient.getContainerReference("keycontainer");
-            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(getString(R.string.user_id) + ".txt");
+            CloudBlockBlob blobEncryptedKey = keyContainer.getBlockBlobReference(currentUser.getObjectId() + ".txt");
             File tempKeyFile = File.createTempFile("tempkeyfile_download", ".tmp", getCacheDir());
             System.out.println("the path of the file is: " + tempKeyFile.getAbsolutePath());
             blobEncryptedKey.downloadToFile(tempKeyFile.getAbsolutePath());
@@ -376,5 +498,24 @@ public class MainActivity extends ActionBarActivity {
             CryptoUtils.symmetricKeyHandshake();
         }
         loadBlobs();
+    }
+
+    public void createParseUser(String username) {
+        final ParseObject user = new ParseObject("User");
+        user.put("username", username);
+        user.put("owner", false);
+        user.put("deviceId", getDeviceId());
+        user.put("approved", false);
+
+        user.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                currentUser = user;
+
+                // create RSA keys
+                AsyncTask<Void, Void, KeyPair> asyncTask = new CreateRSAKeys(MainActivity.this, currentUser);
+                asyncTask.execute();
+            }
+        });
     }
 }
