@@ -112,7 +112,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
     private void attachMetaData(File file) {
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, "title");
+        values.put(MediaStore.Images.Media.TITLE, "title"+System.currentTimeMillis());
         values.put(MediaStore.Images.Media.DESCRIPTION, "desc");
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
         values.put(MediaStore.Images.ImageColumns.BUCKET_ID, file.toString().toLowerCase(Locale.US).hashCode());
