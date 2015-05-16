@@ -288,7 +288,6 @@ public class MainActivity extends ActionBarActivity {
         } else if (requestCode == NEW_USER_CODE && resultCode == Activity.RESULT_OK) {
             String username = data.getExtras().getString(NewUserActivity.NAME);
             createParseUser(username);
-            ParseQuery<ParseObject> query = ParseQuery.getQuery("User");
 
         } else if (requestCode == VIDEO_CODE && resultCode == RESULT_OK) {
             Uri videoUri = data.getData();
@@ -313,8 +312,6 @@ public class MainActivity extends ActionBarActivity {
 
             setIsDownloaded(event.index);
             setFile(event.index, event.outputFile);
-
-            loadBlobs();
         } else {
             makeToast(getString(R.string.downloading_error_toast_text));
         }
@@ -459,7 +456,7 @@ public class MainActivity extends ActionBarActivity {
         Uri path = Uri.fromFile(file);
         Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
         imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        imageOpenIntent.setDataAndType(path, "image/*,video/*");
+        imageOpenIntent.setDataAndType(path, "image/*");
         startActivity(imageOpenIntent);
     }
 
