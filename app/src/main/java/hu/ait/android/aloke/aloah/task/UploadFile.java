@@ -2,12 +2,7 @@ package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.MediaStore;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -63,7 +58,6 @@ public class UploadFile extends AsyncTask<String, Void, Boolean> {
             CloudBlockBlob blob = container.getBlockBlobReference(inputFile.getName());
 
             // encrypt the file
-            String key = ((MainActivity) context).inputKey;
             success = CryptoUtils.encrypt(inputFile, tempFile);
             blob.upload(new java.io.FileInputStream(tempFile), tempFile.length());
 

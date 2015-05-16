@@ -2,12 +2,9 @@ package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Base64;
-import android.widget.Toast;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -16,11 +13,8 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;

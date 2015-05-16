@@ -27,13 +27,8 @@ public class LoadBlobs extends AsyncTask<String, Void, ArrayList<DataItem>> {
     }
 
     @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
-
-    @Override
     protected ArrayList<DataItem> doInBackground(String... params) {
-        ArrayList<DataItem> images = new ArrayList<DataItem>();
+        ArrayList<DataItem> images = new ArrayList<>();
         try {
             storageAccount = CloudStorageAccount.parse(MainActivity.STORAGE_CONNECTION_STRING);
         } catch (URISyntaxException | InvalidKeyException e) {

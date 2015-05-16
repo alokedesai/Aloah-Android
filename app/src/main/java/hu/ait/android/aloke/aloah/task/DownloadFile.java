@@ -1,7 +1,6 @@
 package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
-import android.app.usage.UsageEvents;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -56,8 +55,8 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         try {
 
             File mediaStorageDir = new File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                    "Decrypted");
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    "Aloah");
 
             if (!mediaStorageDir.exists()) {
                 if (!mediaStorageDir.mkdirs()) {

@@ -14,6 +14,7 @@ public class DataItem {
 
     public DataItem(ListBlobItem blob) {
         this.blob = blob;
+        isDownloaded = false;
     }
 
     public ListBlobItem getBlob() {

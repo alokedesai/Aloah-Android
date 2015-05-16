@@ -2,7 +2,6 @@ package hu.ait.android.aloke.aloah.task;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Base64;
 

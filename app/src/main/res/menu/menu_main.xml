@@ -4,19 +4,19 @@
       tools:context=".MainActivity">
     <item
         android:id="@+id/action_admin"
-        android:title="Admin"
+        android:title="@string/admin_menu_message"
         android:visible="false"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_take_video"
         android:icon="@drawable/videocamera128"
-        android:title="Video"
-        app:showAsAction="always"/>
+        android:title="@string/video_menu_title"
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/action_take_photo"
         android:icon="@drawable/camera128"
-        android:title="Photo"
-        app:showAsAction="always"/>
+        android:title="@string/photo_menu_title"
+        app:showAsAction="ifRoom"/>
 </menu>

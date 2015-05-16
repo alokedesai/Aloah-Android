@@ -2,12 +2,8 @@
 <resources>
 
     <string name="app_name">Aloah</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_add_item">AddItemActivity</string>
     <string name="title_activity_take_photo">TakePhotoActivity</string>
-    <string name="title_activity_new_user">NewUserActivity</string>
-    <string name="title_activity_admin">AdminActivity</string>
     <string name="no_files_on_server_text">No files on the server</string>
     <string name="refresh_btn_text">Refresh</string>
     <string name="unapproved_text">You have yet to be approved by the group owner</string>
@@ -35,5 +31,9 @@
     <string name="view_item_menu_overflow">View Item</string>
     <string name="delete_from_server_menu_overflow">Delete from Server</string>
     <string name="download_item_menu_overflow">Download</string>
+    <string name="approve_message">Approve</string>
+    <string name="admin_menu_message">Admin</string>
+    <string name="video_menu_title">Video</string>
+    <string name="photo_menu_title">Photo</string>
 
 </resources>

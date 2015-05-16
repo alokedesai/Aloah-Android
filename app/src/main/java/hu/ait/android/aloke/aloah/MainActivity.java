@@ -68,7 +68,6 @@ public class MainActivity extends ActionBarActivity {
     public static final String KEY_CONTAINER = "keycontainer";
     public static final String TEST_CONTAINER = "testcontainer";
 
-    public String inputKey;
     private Uri uriForUpload = null;
     private boolean canRefresh = false;
 

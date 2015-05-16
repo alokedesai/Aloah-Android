@@ -9,31 +9,22 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 import at.markushi.ui.CircleButton;
 
 
+@SuppressWarnings("deprecation")
 public class TakePhotoActivity extends ActionBarActivity {
 
     public static final String PHOTO_PATH = "PHOTO_PATH";
     public static final int REQUEST_VIDEO_CAPTURE = 1;
     private CameraTextureView camTextureView;
-    private boolean recording = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,17 +76,10 @@ public class TakePhotoActivity extends ActionBarActivity {
             File pictureFile = new File(mediaStorageDir.getPath() +
                     File.separator + "photo" + System.currentTimeMillis() + ".png");
 
-            if (pictureFile == null) {
-                System.out.println("picture file is null");
-                return;
-            }
-
             try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }

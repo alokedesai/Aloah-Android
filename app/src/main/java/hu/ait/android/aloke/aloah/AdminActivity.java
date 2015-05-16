@@ -1,9 +1,7 @@
 package hu.ait.android.aloke.aloah;
 
-import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -11,7 +9,6 @@ import android.widget.Toast;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.parse.FindCallback;
-import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -43,7 +40,7 @@ public class AdminActivity extends ActionBarActivity {
                 if (e == null) {
                     usersToApprove = scoreList;
                 } else {
-                    usersToApprove = new ArrayList<ParseObject>();
+                    usersToApprove = new ArrayList<>();
                 }
                 adapter = new UnapprovedUsersListAdapter(AdminActivity.this, usersToApprove);
                 // set the list adapter

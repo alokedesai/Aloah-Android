@@ -2,10 +2,7 @@ package hu.ait.android.aloke.aloah;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
-import android.view.Surface;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
-import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -22,6 +19,7 @@ import java.util.Date;
 /**
  * Created by Noah on 5/12/2015.
  */
+@SuppressWarnings("deprecation")
 public class CameraTextureView extends TextureView implements
         TextureView.SurfaceTextureListener {
 
@@ -60,7 +58,8 @@ public class CameraTextureView extends TextureView implements
 
         try {
             camera.setPreviewTexture(surface);
-        } catch (IOException t) {
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         camera.setPreviewCallback(previewCallback);
