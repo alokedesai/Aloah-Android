@@ -3,7 +3,6 @@ package hu.ait.android.aloke.aloah;
 import android.content.Context;
 import android.support.v7.internal.view.menu.MenuBuilder;
 import android.support.v7.widget.PopupMenu;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -11,19 +10,19 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import java.lang.reflect.Field;
 
-import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.model.DataItem;
 
 /**
  * Created by Aloke on 5/9/15.
  */
 public class OnOverflowSelectedListener implements View.OnClickListener{
-    private ImageItem imageItem;
+    private DataItem dataItem;
     private Context context;
     private int position;
 
-    public OnOverflowSelectedListener(Context context, ImageItem imageItem, int position) {
+    public OnOverflowSelectedListener(Context context, DataItem dataItem, int position) {
         this.context = context;
-        this.imageItem = imageItem;
+        this.dataItem = dataItem;
         this.position = position;
     }
 
@@ -35,13 +34,13 @@ public class OnOverflowSelectedListener implements View.OnClickListener{
             public boolean onMenuItemSelected(MenuBuilder menu, MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.item_overflow_download:
-                        ((MainActivity) context).downloadFile((CloudBlockBlob) imageItem.getBlob(), position);
+                        ((MainActivity) context).downloadFile((CloudBlockBlob) dataItem.getBlob(), position);
                         return true;
                     case R.id.item_overflow_preview:
-                        ((MainActivity) context).openImageFromImageItem(imageItem);
+                        ((MainActivity) context).openImageFromImageItem(dataItem);
                         return true;
                     case R.id.item_overflow_delete:
-                        ((MainActivity) context).deleteFile((CloudBlockBlob) imageItem.getBlob());
+                        ((MainActivity) context).deleteFile((CloudBlockBlob) dataItem.getBlob());
                     default:
                         return super.onMenuItemSelected(menu, item);
                 }
@@ -50,7 +49,7 @@ public class OnOverflowSelectedListener implements View.OnClickListener{
 
         popupMenu.inflate(R.menu.menu_overflow);
 
-        if (!imageItem.isDownloaded()) {
+        if (!dataItem.isDownloaded()) {
             popupMenu.getMenu().removeItem(R.id.item_overflow_preview);
         }
 

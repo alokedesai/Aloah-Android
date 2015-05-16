@@ -1,17 +1,16 @@
 package hu.ait.android.aloke.aloah.event;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.model.DataItem;
 
 /**
  * Created by Aloke on 5/15/15.
  */
 public class LoadBlobsEvent {
-    public ArrayList<ImageItem> images;
+    public ArrayList<DataItem> images;
 
-    public LoadBlobsEvent(ArrayList<ImageItem> images) {
+    public LoadBlobsEvent(ArrayList<DataItem> images) {
         this.images = images;
     }
 }

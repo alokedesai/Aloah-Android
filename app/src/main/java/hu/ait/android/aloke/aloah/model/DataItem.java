@@ -7,12 +7,12 @@ import java.io.File;
 /**
  * Created by Aloke on 5/9/15.
  */
-public class ImageItem {
+public class DataItem {
     private ListBlobItem blob;
     private boolean isDownloaded;
     private File file;
 
-    public ImageItem(ListBlobItem blob) {
+    public DataItem(ListBlobItem blob) {
         this.blob = blob;
     }
 

@@ -1,27 +1,17 @@
 package hu.ait.android.aloke.aloah.adapter;
 
-import android.animation.LayoutTransition;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobListingDetails;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,20 +19,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.OnOverflowSelectedListener;
 import hu.ait.android.aloke.aloah.R;
-import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.model.DataItem;
 
 /**
  * Created by Aloke on 4/15/15.
  */
 public class BlobListAdapter extends BaseAdapter {
-    private List<ImageItem> blobs;
+    private List<DataItem> blobs;
     private Context context;
 
 
-    public BlobListAdapter(List<ImageItem> blobs, Context context) {
+    public BlobListAdapter(List<DataItem> blobs, Context context) {
         this.blobs = blobs;
         this.context = context;
     }
@@ -86,12 +75,12 @@ public class BlobListAdapter extends BaseAdapter {
             v.setTag(holder);
         }
 
-        final ImageItem imageItem = blobs.get(position);
+        final DataItem dataItem = blobs.get(position);
 
-        if (imageItem != null) {
+        if (dataItem != null) {
             final ViewHolder holder = (ViewHolder) v.getTag();
 
-            final ListBlobItem blobItem = imageItem.getBlob();
+            final ListBlobItem blobItem = dataItem.getBlob();
             final CloudBlockBlob cloudBlockBlob = (CloudBlockBlob) blobItem;
 
             holder.tvLastModified.setText(getFormattedDate(cloudBlockBlob));
@@ -103,7 +92,7 @@ public class BlobListAdapter extends BaseAdapter {
                 holder.tvBlobName.setText(blobItem.getUri().toString());
             }
 
-            holder.ivOverflow.setOnClickListener(new OnOverflowSelectedListener(context, imageItem, position));
+            holder.ivOverflow.setOnClickListener(new OnOverflowSelectedListener(context, dataItem, position));
 
         }
 

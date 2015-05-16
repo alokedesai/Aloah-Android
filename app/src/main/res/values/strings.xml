@@ -32,5 +32,8 @@
     <string name="creating_rsa_keys_progress_dialog_message">Creating RSA Keys</string>
     <string name="choose_name_activity_label">Choose Your Name</string>
     <string name="admin_activity_label">Admin</string>
+    <string name="view_item_menu_overflow">View Item</string>
+    <string name="delete_from_server_menu_overflow">Delete from Server</string>
+    <string name="download_item_menu_overflow">Download</string>
 
 </resources>

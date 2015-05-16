@@ -10,17 +10,16 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
-import java.util.List;
 
 import de.greenrobot.event.EventBus;
 import hu.ait.android.aloke.aloah.MainActivity;
 import hu.ait.android.aloke.aloah.event.LoadBlobsEvent;
-import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.model.DataItem;
 
 /**
  * Created by Aloke on 5/15/15.
  */
-public class LoadBlobs extends AsyncTask<String, Void, ArrayList<ImageItem>> {
+public class LoadBlobs extends AsyncTask<String, Void, ArrayList<DataItem>> {
     private CloudStorageAccount storageAccount;
 
     public LoadBlobs(CloudStorageAccount storageAccount) {
@@ -33,8 +32,8 @@ public class LoadBlobs extends AsyncTask<String, Void, ArrayList<ImageItem>> {
     }
 
     @Override
-    protected ArrayList<ImageItem> doInBackground(String... params) {
-        ArrayList<ImageItem> images = new ArrayList<ImageItem>();
+    protected ArrayList<DataItem> doInBackground(String... params) {
+        ArrayList<DataItem> images = new ArrayList<DataItem>();
         try {
             storageAccount = CloudStorageAccount.parse(MainActivity.STORAGE_CONNECTION_STRING);
         } catch (URISyntaxException | InvalidKeyException e) {
@@ -49,7 +48,7 @@ public class LoadBlobs extends AsyncTask<String, Void, ArrayList<ImageItem>> {
             CloudBlobContainer container = blobClient.getContainerReference(MainActivity.TEST_CONTAINER);
 
             for (ListBlobItem b : container.listBlobs()) {
-                images.add(new ImageItem(b));
+                images.add(new DataItem(b));
             }
 
         } catch (Exception e) {
@@ -60,7 +59,7 @@ public class LoadBlobs extends AsyncTask<String, Void, ArrayList<ImageItem>> {
     }
 
     @Override
-    protected void onPostExecute(ArrayList<ImageItem> blobs) {
+    protected void onPostExecute(ArrayList<DataItem> blobs) {
         EventBus.getDefault().post(new LoadBlobsEvent(blobs));
     }
 }

@@ -5,16 +5,16 @@
     <item
         android:id="@+id/item_overflow_download"
         android:icon="@drawable/cloud_download"
-        android:title="Download" />
+        android:title="@string/download_item_menu_overflow" />
 
     <item
         android:id="@+id/item_overflow_preview"
         android:icon="@drawable/image"
-        android:title="View Image" />
+        android:title="@string/view_item_menu_overflow" />
 
     <item
         android:id="@+id/item_overflow_delete"
         android:icon="@drawable/trash"
-        android:title="Delete from Server" />
+        android:title="@string/delete_from_server_menu_overflow" />
 
 </menu>

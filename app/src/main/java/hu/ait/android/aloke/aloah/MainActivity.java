@@ -1,12 +1,10 @@
 package hu.ait.android.aloke.aloah;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,11 +22,7 @@ import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
@@ -38,10 +32,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -59,7 +50,7 @@ import hu.ait.android.aloke.aloah.event.LoadBlobsEvent;
 import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
 import hu.ait.android.aloke.aloah.event.UploadFileEvent;
 import hu.ait.android.aloke.aloah.fragment.WelcomeDialogFragment;
-import hu.ait.android.aloke.aloah.model.ImageItem;
+import hu.ait.android.aloke.aloah.model.DataItem;
 import hu.ait.android.aloke.aloah.task.CreateRSAKeys;
 import hu.ait.android.aloke.aloah.task.DeleteFile;
 import hu.ait.android.aloke.aloah.task.DownloadEncryptedKey;
@@ -87,7 +78,7 @@ public class MainActivity extends ActionBarActivity {
     public static final int VIDEO_CODE = 104;
 
     private CloudStorageAccount storageAccount;
-    private ArrayList<ImageItem> images = new ArrayList<>();
+    private ArrayList<DataItem> images = new ArrayList<>();
     private ListView listView;
     private BlobListAdapter adapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -268,7 +259,7 @@ public class MainActivity extends ActionBarActivity {
 
     private void startGalleryIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, null);
-        intent.setType("image/*,video/*");
+        intent.setType("image/*,video/mp4");
         startActivityForResult(intent, FILE_CODE);
     }
 
@@ -372,7 +363,7 @@ public class MainActivity extends ActionBarActivity {
             canRefresh = false;
             images.clear();
 
-            AsyncTask<String, Void, ArrayList<ImageItem>> asyncTask = new LoadBlobs(storageAccount);
+            AsyncTask<String, Void, ArrayList<DataItem>> asyncTask = new LoadBlobs(storageAccount);
             asyncTask.execute();
         }
     }
@@ -397,7 +388,7 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
-    private void setBlobAdapter(ArrayList<ImageItem> blobs) {
+    private void setBlobAdapter(ArrayList<DataItem> blobs) {
 
         adapter = new BlobListAdapter(blobs, this);
         listView.setAdapter(adapter);
@@ -463,12 +454,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    public void openImageFromImageItem(ImageItem imageItem) {
-        File file = imageItem.getFile();
+    public void openImageFromImageItem(DataItem dataItem) {
+        File file = dataItem.getFile();
         Uri path = Uri.fromFile(file);
         Intent imageOpenIntent = new Intent(Intent.ACTION_VIEW);
         imageOpenIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        imageOpenIntent.setDataAndType(path, "image/*");
+
+        if (file.getName().endsWith(".mp4")) {
+            imageOpenIntent.setDataAndType(path, "video/*");
+        } else {
+            imageOpenIntent.setDataAndType(path, "image/*");
+        }
+
         startActivity(imageOpenIntent);
     }
 
