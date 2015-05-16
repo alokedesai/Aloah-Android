@@ -112,7 +112,7 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
         if (file.getName().endsWith(("mp4"))) {
             attachVideoMetaData(file);
         } else {
-            attachImageMetaData();
+            attachImageMetaData(file);
         }
     }
 
