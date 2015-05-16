@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:fab="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
@@ -63,4 +63,4 @@
             fab:fab_colorPressed="@color/accent_pressed"
             fab:fab_colorRipple="@color/ripple"/>
     </FrameLayout>
-</RelativeLayout>
+</LinearLayout>

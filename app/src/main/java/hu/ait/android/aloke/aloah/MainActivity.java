@@ -206,8 +206,8 @@ public class MainActivity extends ActionBarActivity {
 
     private void hideUnapprovedText() {
         tvEmpty.setVisibility(View.VISIBLE);
-        tvUnapproved.setVisibility(View.INVISIBLE);
-        btnRefresh.setVisibility(View.INVISIBLE);
+        tvUnapproved.setVisibility(View.GONE);
+        btnRefresh.setVisibility(View.GONE);
     }
 
     private void startNewUserActivity() {
