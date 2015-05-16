@@ -29,5 +29,8 @@
     <string name="key_uploaded_succesful_toast_text">Key has been successfully uploaded!</string>
     <string name="download_file_null_blob_toast_text">Null blob, download failed.</string>
     <string name="null_uri_upload_failed_toast_text">Uri null, upload failed</string>
+    <string name="creating_rsa_keys_progress_dialog_message">Creating RSA Keys</string>
+    <string name="choose_name_activity_label">Choose Your Name</string>
+    <string name="admin_activity_label">Admin</string>
 
 </resources>

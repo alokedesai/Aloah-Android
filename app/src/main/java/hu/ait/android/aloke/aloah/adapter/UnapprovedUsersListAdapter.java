@@ -45,14 +45,14 @@ public class UnapprovedUsersListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         View v = convertView;
 
         if (v == null) {
             v = LayoutInflater.from(context).inflate(R.layout.row_unapproved_user_item, null);
             ViewHolder holder = new ViewHolder();
             holder.tvName = (TextView) v.findViewById(R.id.tvParseName);
-            holder.btnApprove =  (Button) v.findViewById(R.id.btnApprove);
+            holder.btnApprove = (Button) v.findViewById(R.id.btnApprove);
 
             v.setTag(holder);
         }
@@ -66,7 +66,8 @@ public class UnapprovedUsersListAdapter extends BaseAdapter {
             holder.btnApprove.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user);
+                    AsyncTask<String, Void, Boolean> asyncTask =
+                            new UploadEncryptedKey(context, user, position);
                     asyncTask.execute(user.getString("publicKey"));
                 }
             });
@@ -75,7 +76,12 @@ public class UnapprovedUsersListAdapter extends BaseAdapter {
         return v;
     }
 
-    static class ViewHolder{
+    public void removeItem(int index) {
+        users.remove(index);
+        notifyDataSetChanged();
+    }
+
+    static class ViewHolder {
         Button btnApprove;
         TextView tvName;
     }

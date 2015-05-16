@@ -40,10 +40,12 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
     private String publicKey;
     private ParseObject user;
     private ProgressDialog progressDialog;
+    private int index;
 
-    public UploadEncryptedKey(Context context, ParseObject user) {
+    public UploadEncryptedKey(Context context, ParseObject user, int index) {
         this.context = context;
         this.user = user;
+        this.index = index;
 
         progressDialog = new ProgressDialog(context);
     }
@@ -99,6 +101,6 @@ public class UploadEncryptedKey extends AsyncTask<String, Void, Boolean> {
         if (success) {
             progressDialog.dismiss();
         }
-        EventBus.getDefault().post(new UploadEncryptedKeyEvent(success));
+        EventBus.getDefault().post(new UploadEncryptedKeyEvent(index, success));
     }
 }

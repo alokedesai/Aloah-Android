@@ -1,5 +1,6 @@
 package hu.ait.android.aloke.aloah.task;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -13,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
 import de.greenrobot.event.EventBus;
+import hu.ait.android.aloke.aloah.R;
 import hu.ait.android.aloke.aloah.crypto.CryptoUtils;
 import hu.ait.android.aloke.aloah.event.CreateRSAKeysEvent;
 
@@ -22,10 +24,20 @@ import hu.ait.android.aloke.aloah.event.CreateRSAKeysEvent;
 public class CreateRSAKeys extends AsyncTask<Void, Void, KeyPair> {
     private Context context;
     private ParseObject currentUser;
+    private ProgressDialog progressDialog;
 
     public CreateRSAKeys(Context context, ParseObject currentUser) {
         this.context = context;
         this.currentUser = currentUser;
+        progressDialog = new ProgressDialog(context);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog.setMessage(context.getString(R.string.creating_rsa_keys_progress_dialog_message));
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
     }
 
     @Override
@@ -52,6 +64,8 @@ public class CreateRSAKeys extends AsyncTask<Void, Void, KeyPair> {
 
     @Override
     protected void onPostExecute(KeyPair keyPair) {
+        progressDialog.dismiss();
+
         if (keyPair != null) {
             EventBus.getDefault().post(
                     new CreateRSAKeysEvent(keyPair));

@@ -158,7 +158,7 @@ public class CryptoUtils {
 
     public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
-        generator.initialize(4096);
+        generator.initialize(2048);
         return generator.generateKeyPair();
     }
 
@@ -277,8 +277,8 @@ public class CryptoUtils {
     }
 
     private static void uploadEncryptedSymmetricKey(ParseObject user, byte[] encryptedSymmetricKey) {
-        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user);
-        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
+//        AsyncTask<String, Void, Boolean> asyncTask = new UploadEncryptedKey(context, user);
+//        asyncTask.execute(Base64.encodeToString(encryptedSymmetricKey, Base64.DEFAULT).replaceAll("\n", ""));
     }
 
     /**

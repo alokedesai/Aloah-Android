@@ -5,8 +5,10 @@ package hu.ait.android.aloke.aloah.event;
  */
 public class UploadEncryptedKeyEvent {
     public final boolean success;
+    public final int listIndex;
 
-    public UploadEncryptedKeyEvent(boolean success) {
+    public UploadEncryptedKeyEvent(int listIndex, boolean success) {
+        this.listIndex = listIndex;
         this.success = success;
     }
 }

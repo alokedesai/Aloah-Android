@@ -29,6 +29,7 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.Parse;
@@ -113,7 +114,7 @@ public class MainActivity extends ActionBarActivity {
 
         CryptoUtils.setContext(this);
 
-       // saveKeysToSharedPreferences();
+        // saveKeysToSharedPreferences();
 
 
         //CryptoUtils.symmetricKeyHandshake();
@@ -178,18 +179,29 @@ public class MainActivity extends ActionBarActivity {
                 if (e == null && scoreList.size() > 0) {
                     currentUser = scoreList.get(0);
 
-                    if (currentUser.getBoolean("owner")) {
-                        adminItem.setVisible(true);
-                    }
+                    String privateKey = CryptoUtils.getKeyFromSharedPreferences(CryptoUtils.PRIVATE_KEY);
+                    if (privateKey == null) {
+                        currentUser.deleteInBackground(new DeleteCallback() {
+                            @Override
+                            public void done(ParseException e) {
+                                startNewUserActivity();
+                            }
+                        });
 
-                    if (currentUser.getBoolean("approved")) {
-                        canRefresh = true;
-
-                        // download the encrypted key and save it to shared preferences, on result
-                        // load blobs
-                        downloadEncryptedKey();
                     } else {
-                        showUnapprovedText();
+                        if (currentUser.getBoolean("owner")) {
+                            adminItem.setVisible(true);
+                        }
+
+                        if (currentUser.getBoolean("approved")) {
+                            canRefresh = true;
+
+                            // download the encrypted key and save it to shared preferences, on result
+                            // load blobs
+                            downloadEncryptedKey();
+                        } else {
+                            showUnapprovedText();
+                        }
                     }
                 } else {
                     startNewUserActivity();
@@ -476,7 +488,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void done(ParseException e) {
                 currentUser = user;
-
+                showUnapprovedText();
                 // create RSA keys
                 AsyncTask<Void, Void, KeyPair> asyncTask = new CreateRSAKeys(MainActivity.this, currentUser);
                 asyncTask.execute();

@@ -32,11 +32,11 @@
         </activity>
         <activity
             android:name=".NewUserActivity"
-            android:label="@string/title_activity_new_user" >
+            android:label="@string/choose_name_activity_label" >
         </activity>
         <activity
             android:name=".AdminActivity"
-            android:label="@string/title_activity_admin" >
+            android:label="@string/admin_activity_label" >
         </activity>
     </application>
 

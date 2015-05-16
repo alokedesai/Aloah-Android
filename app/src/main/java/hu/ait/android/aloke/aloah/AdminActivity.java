@@ -28,7 +28,7 @@ import hu.ait.android.aloke.aloah.event.UploadEncryptedKeyEvent;
 
 public class AdminActivity extends ActionBarActivity {
     List<ParseObject> usersToApprove;
-
+    UnapprovedUsersListAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,8 +45,9 @@ public class AdminActivity extends ActionBarActivity {
                 } else {
                     usersToApprove = new ArrayList<ParseObject>();
                 }
+                adapter = new UnapprovedUsersListAdapter(AdminActivity.this, usersToApprove);
                 // set the list adapter
-                listView.setAdapter(new UnapprovedUsersListAdapter(AdminActivity.this, usersToApprove));
+                listView.setAdapter(adapter);
             }
         });
     }
@@ -101,6 +102,7 @@ public class AdminActivity extends ActionBarActivity {
         if (event.success) {
             Toast.makeText(this, getString(R.string.key_uploaded_succesful_toast_text),
                     Toast.LENGTH_LONG).show();
+            adapter.removeItem(event.listIndex);
         }
     }
 }

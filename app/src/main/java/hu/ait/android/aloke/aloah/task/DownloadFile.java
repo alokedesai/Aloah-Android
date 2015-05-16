@@ -86,8 +86,6 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
                 attachMetaData(outputFile);
             }
 
-
-
         } catch (StorageException | URISyntaxException | IOException e) {
             e.printStackTrace();
             return false;
