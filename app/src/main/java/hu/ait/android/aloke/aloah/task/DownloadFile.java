@@ -109,6 +109,14 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
     }
 
     private void attachMetaData(File file) {
+        if (file.getName().endsWith(("mp4"))) {
+            attachVideoMetaData(file);
+        } else {
+            attachImageMetaData();
+        }
+    }
+
+    private void attachImageMetaData(File file) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "title"+System.currentTimeMillis());
         values.put(MediaStore.Images.Media.DESCRIPTION, "desc");
@@ -119,6 +127,19 @@ public class DownloadFile extends AsyncTask<CloudBlockBlob, Void, Boolean> {
 
         ContentResolver cr = context.getContentResolver();
         cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+    }
+
+    private void attachVideoMetaData(File file) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Video.Media.TITLE, "title"+System.currentTimeMillis());
+        values.put(MediaStore.Video.Media.DESCRIPTION, "desc");
+        values.put(MediaStore.Video.Media.DATE_TAKEN, System.currentTimeMillis());
+        values.put(MediaStore.Video.VideoColumns.BUCKET_ID, file.toString().toLowerCase(Locale.US).hashCode());
+        values.put(MediaStore.Video.VideoColumns.BUCKET_DISPLAY_NAME, file.getName().toLowerCase(Locale.US));
+        values.put("_data", file.getAbsolutePath());
+
+        ContentResolver cr = context.getContentResolver();
+        cr.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
 
     }
 }
