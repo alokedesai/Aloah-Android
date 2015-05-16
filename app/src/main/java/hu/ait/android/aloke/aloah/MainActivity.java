@@ -453,15 +453,6 @@ public class MainActivity extends ActionBarActivity {
         editor.apply();
     }
 
-    public void saveKeysToSharedPreferences() {
-        SharedPreferences sp = getSharedPreferences("KEY", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        String pub = getString(R.string.pub_key);
-        String priv = getString(R.string.priv_key);
-        editor.putString(CryptoUtils.PUBLIC_KEY, pub);
-        editor.putString(CryptoUtils.PRIVATE_KEY, priv);
-        editor.apply();
-    }
 
     public void openImageFromImageItem(ImageItem imageItem) {
         File file = imageItem.getFile();
